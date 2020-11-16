@@ -12,6 +12,8 @@ using UnityEngine;
  */
 public class ConnectServer : MonoBehaviour{
 
+    //// VAR PUB
+    public short quantityDatagramLost = 10;//%
 
     //// REF PUB
     public string serverIp = "127.0.0.1";
@@ -77,9 +79,14 @@ public class ConnectServer : MonoBehaviour{
                     break;
                 //Mensaje de estado
                 case 3:
-                    int tickServer = br.ReadInt32();
-                    Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
-                    validatePhysic.validate(tickServer, positionServer);
+                    //🎲 Simulacion perdida paquetes: Probabilidad de que el paquete se pierda
+                    if (StaticMethods.percent(0)) { 
+                        Debug.Log("Paquete perdido");
+                    } else { 
+                        int tickServer = br.ReadInt32();
+                        Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
+                        validatePhysic.validate(tickServer, positionServer);
+                    }
                     break;
             }
         }

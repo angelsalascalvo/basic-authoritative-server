@@ -8,7 +8,6 @@ using UnityEngine;
 public class ValidatePhysic : MonoBehaviour{
 
     private static short size = 1024;
-    public int lastTickExecutedServer = 0;
     public GameObject player;
     Vector2[] bufferPosition;
 
@@ -34,8 +33,8 @@ public class ValidatePhysic : MonoBehaviour{
         //Las posiciones en servidor y cliente no coinciden
         if (bufferPosition[getIndex(tick)] != targetPosition) {
             //Rebobinar el cliente con la posicion real (servidor)
-            Debug.Log("rebobina se esperaba:"+targetPosition.x+" ejecutado "+bufferPosition[getIndex(tick)].x);
-            player.transform.position = targetPosition;
+            UnityMainThreadDispatcher.Instance().Enqueue(() => player.transform.position = targetPosition);
+            Debug.Log("rebobinado para el tick "+tick+" se esperaba:" + targetPosition.x + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].x);
         }
     }
 
