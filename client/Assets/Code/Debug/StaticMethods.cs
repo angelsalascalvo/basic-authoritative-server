@@ -9,6 +9,19 @@ using UnityEngine;
 public static class StaticMethods {
 
     /**
+     * Imprimer en consola un datagrama (array de bytes)
+     */
+    public static void debugDatagram(byte[] rData) {
+        string t = "";
+        foreach (byte a in rData) {
+            t += a + " - ";
+        }
+        Debug.Log(t);
+    }
+
+    //-----------------------------------------------------------------
+
+    /**
      * Devuelve true o false en funcion de un porcentaje
      * 0% = false; 100% = true;
      */
@@ -17,7 +30,7 @@ public static class StaticMethods {
     }
 }
 
-//--------------------------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Clase estatica para poder llamar al metodo de percent desde un hilo

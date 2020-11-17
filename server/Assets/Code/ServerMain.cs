@@ -7,14 +7,21 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 /**
- * FUNCIONALIDAD DEL SCRIPT
- */
+* FUNCIONALIDAD DEL SCRIPT
+*/
 public class ServerMain : MonoBehaviour{
+
 
     public string ipServer;
     public int portServer;
     public MovePlayer movePlayer;
+    // 🎲 Simulacion latencia
+    [Header("Latency Simulate")]
+    public Slider sliderLatency;
+    public Text textLatency;
+
 
     private Socket serverSocket;
     private IPEndPoint serverAddress, clientAddress;
@@ -33,6 +40,13 @@ public class ServerMain : MonoBehaviour{
         //2. Iniciar hilo de escucha
         thListenClients = new Thread(new ThreadStart(listen));
         thListenClients.Start();
+    }
+    
+    //---------------------------------------------------------------
+
+    private void Update() {
+        //🎲 Simulacion de latencia
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
     }
 
 
@@ -90,7 +104,7 @@ public class ServerMain : MonoBehaviour{
                                 break;
                         }
 
-                        debugDatagram(dataRec);
+                        StaticMethods.debugDatagram(dataRec);
                     }
 
                     break;
@@ -98,6 +112,7 @@ public class ServerMain : MonoBehaviour{
         }
     }
 
+    //------------------------------------------------------------------------
 
     /**
      * METODO ENVIAR MENSAJE AL SERVIDOR
@@ -113,16 +128,20 @@ public class ServerMain : MonoBehaviour{
         bw.Write(position.y);
 
         //Enviar datos
-        serverSocket.SendTo(dataSend, clientAddress);
+        //serverSocket.SendTo(dataSend, clientAddress); //Sin simular latencia
+        StartCoroutine(sendToClientSimulateLatency(dataSend, clientAddress));//🎲 Simulacion de latencia
     }
 
 
-    public void debugDatagram(byte[] rData) {
-        string t = "";
-        foreach (byte a in rData) {
-            t += a + " - ";
-        }
-        Debug.Log(t);
+    //---------------------------------------------------------------
+
+    /**
+     * 🎲 Simulacion de latencia
+     * Corrutina que espera X segundos antes de enviar los datos al servidor 
+     */
+    IEnumerator sendToClientSimulateLatency(byte[] dataSend, IPEndPoint clientAddress) {
+        yield return new WaitForSeconds(sliderLatency.value / 1000);
+        serverSocket.SendTo(dataSend, clientAddress);
     }
 }
 

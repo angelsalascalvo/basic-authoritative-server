@@ -66,7 +66,7 @@ public class ConnectServer : MonoBehaviour{
             socket.ReceiveFrom(dataRec, ref server);
             BinaryReader br = new BinaryReader(new MemoryStream(dataRec));
 
-            //debugDatagram(dataRec);
+            //StaticMethods.debugDatagram(dataRec);
 
             switch (br.ReadByte()) {
                 //Respuesta servidor a entrar en partida
@@ -114,7 +114,6 @@ public class ConnectServer : MonoBehaviour{
     }
 
 
-
     ///////////////////////////////////////////////////////////////////////////////////////
     //                                     GET + SET                                     //
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -127,13 +126,5 @@ public class ConnectServer : MonoBehaviour{
         return connect;
     }
 
-    //---------------------------------------------------------------
-
-    public void debugDatagram(byte[] rData) {
-        string t = "";
-        foreach (byte a in rData) {
-            t += a + " - ";
-        }
-        Debug.Log(t);
-    }
+    
 }

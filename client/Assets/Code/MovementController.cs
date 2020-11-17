@@ -1,17 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /**
  * FUNCIONALIDAD DEL SCRIPT
  */
 public class MovementController : MonoBehaviour{
 
-    Rigidbody2D rb;
-    private EnumDirection direction=EnumDirection.None;
-
+    //// REF PUB
     public ConnectServer conectServer;
     public ValidatePhysic validatePhysic;
+    // 🎲 Simulacion latencia
+    [Header("Latency Simulate")]
+    public Slider sliderLatency;
+    public Text textLatency;
+
+
+    //// VAR PRI
+    private Rigidbody2D rb;
+    private EnumDirection direction = EnumDirection.None;
 
     private float timer;
     private int tick = 0;
@@ -53,17 +61,28 @@ public class MovementController : MonoBehaviour{
 
             if (conectServer.isConnected()) {
                 Physics2D.Simulate(Time.fixedDeltaTime);
-                //Debug.Log("tick:"+tick);
-                conectServer.sendDataToServer(data);
+                //conectServer.sendDataToServer(data); //Sin simular latencia
+                StartCoroutine(sendToServerSimulateLatency(data));//🎲 Simulacion de latencia
                 validatePhysic.savePositionBuffer(tick, transform.position);
                 tick++;
             }
-
-            
         }
 
-        //rb.position = Vector2.MoveTowards(rb.position, targetPosition, Time.fixedDeltaTime);
+        //🎲 Simulacion de latencia
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
     }
+
+    //---------------------------------------------------------------
+
+    /**
+     * 🎲 Simulacion de latencia
+     * Corrutina que espera X segundos antes de enviar los datos al servidor 
+     */
+    IEnumerator sendToServerSimulateLatency(byte[] data) {
+        yield return new WaitForSeconds(sliderLatency.value/1000);
+        conectServer.sendDataToServer(data);
+    }
+
 
     //---------------------------------------------------------------
 
