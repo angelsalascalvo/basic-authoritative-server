@@ -10,10 +10,32 @@ public class ValidatePhysic : MonoBehaviour{
     private static short size = 1024;
     public GameObject player;
     Vector2[] bufferPosition;
+    byte[] bufferInputs;
 
     private void Start() {
         bufferPosition = new Vector2[size];
+        bufferInputs = new byte[size];
     }
+
+    //----------------------------------------------------------------------------
+
+    /**
+     * Guardar entradas ejecutadas para cada tick
+     */
+    public void saveInputsBuffer(int tick, byte input) {
+        bufferInputs[getIndex(tick)] = input;
+    }
+
+    //----------------------------------------------------------------------------
+
+    /**
+     * Obtener entradas ejecutadas para un determinado tick
+     */
+    public byte readInputsBuffer(int tick) {
+       return bufferInputs[getIndex(tick)];
+    }
+
+
 
     //----------------------------------------------------------------------------
 

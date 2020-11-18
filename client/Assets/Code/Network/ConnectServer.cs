@@ -25,7 +25,9 @@ public class ConnectServer : MonoBehaviour{
     private Thread thReceiveServer;
     private IPEndPoint serverAddress;
     private bool connect = false;
+    public int lastTickServer = 0;
 
+    public int del=0;
 
     ///////////////////////////////////////////////////////////////////////////////////////
     //                                      METODOS                                      //
@@ -82,10 +84,13 @@ public class ConnectServer : MonoBehaviour{
                     //🎲 Simulacion perdida paquetes: Probabilidad de que el paquete se pierda
                     if (StaticMethods.percent(0)) { 
                         Debug.Log("Paquete perdido");
-                    } else { 
-                        int tickServer = br.ReadInt32();
+                    } else {
+                        lastTickServer = br.ReadInt32();
                         Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
-                        validatePhysic.validate(tickServer, positionServer);
+                        validatePhysic.validate(lastTickServer, positionServer);
+                        
+                        Debug.Log(del);
+                        del++;
                     }
                     break;
             }
@@ -126,5 +131,7 @@ public class ConnectServer : MonoBehaviour{
         return connect;
     }
 
-    
+    public int getLastTickServer() {
+        return lastTickServer;
+    }
 }

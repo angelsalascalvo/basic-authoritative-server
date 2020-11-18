@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 /**
  * FUNCIONALIDAD DEL SCRIPT
@@ -9,7 +10,7 @@ using UnityEngine.UI;
 public class MovementController : MonoBehaviour{
 
     //// REF PUB
-    public ConnectServer conectServer;
+    public ConnectServer connectServer;
     public ValidatePhysic validatePhysic;
     // 🎲 Simulacion latencia
     [Header("Latency Simulate")]
@@ -41,29 +42,47 @@ public class MovementController : MonoBehaviour{
         while (timer >= Time.fixedDeltaTime) {
             timer -= Time.fixedDeltaTime;
 
-            byte[] data = new byte[508];
-            data[0] = 2; //ActionCode 2.
+            if (connectServer.isConnected()) {
+                byte[] data = new byte[508];
+                BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
 
-            switch (direction) {
-                case EnumDirection.Left:
-                    data[1] = 1;
-                    rb.velocity = new Vector2(-3f, rb.velocity.y);
-                    break;
-                case EnumDirection.Right:
-                    data[1] = 2;
-                    rb.velocity = new Vector2(3f, rb.velocity.y);
-                    break;
-                case EnumDirection.None:
-                    data[1] = 0;
-                    rb.velocity = new Vector2(0, rb.velocity.y);
-                    break;
-            }
+                Debug.Log("=============== TICK " + tick+" ===============");
 
-            if (conectServer.isConnected()) {
+                bw.Write((byte)2); //ActionCode 2.
+
+                switch (direction) {
+                    case EnumDirection.Left:
+                        data[1] = 1;
+                        validatePhysic.saveInputsBuffer(tick, 1);
+                        rb.velocity = new Vector2(-3f, rb.velocity.y);
+                        break;
+                    case EnumDirection.Right:
+                        validatePhysic.saveInputsBuffer(tick, 2);
+                        rb.velocity = new Vector2(3f, rb.velocity.y);
+                        break;
+                    case EnumDirection.None:
+                        validatePhysic.saveInputsBuffer(tick, 0);
+                        rb.velocity = new Vector2(0, rb.velocity.y);
+                        break;
+                }
+
+                //Comprobar cuales son los tick aun no recibidos por el servidor para volver a enviarselo 
+                //por si se ha producido alguna perdida de alguno de ellos.
+                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
+                for (int i=connectServer.getLastTickServer()+1; i <= tick; i++) {
+                    bw.Write(i);
+                    bw.Write(validatePhysic.readInputsBuffer(i));
+                    Debug.Log("agregado tick" + i + " input " + validatePhysic.readInputsBuffer(i));
+                }
+                bw.Write((byte)255); //Marca final para detectar cuando se acaba el listado de inputs
+                Debug.Log("enviar paquete del tick "+tick);
+
+           
                 Physics2D.Simulate(Time.fixedDeltaTime);
                 //conectServer.sendDataToServer(data); //Sin simular latencia
                 StartCoroutine(sendToServerSimulateLatency(data));//🎲 Simulacion de latencia
                 validatePhysic.savePositionBuffer(tick, transform.position);
+                Debug.Log("==========================================\n");
                 tick++;
             }
         }
@@ -80,7 +99,7 @@ public class MovementController : MonoBehaviour{
      */
     IEnumerator sendToServerSimulateLatency(byte[] data) {
         yield return new WaitForSeconds(sliderLatency.value/1000);
-        conectServer.sendDataToServer(data);
+        connectServer.sendDataToServer(data);
     }
 
 

@@ -104,7 +104,9 @@ public class ServerMain : MonoBehaviour{
                                 break;
                         }
 
-                        StaticMethods.debugDatagram(dataRec);
+                        //StaticMethods.debugDatagram(dataRec);
+                        Debug.Log("recibido:");
+ 
                     }
 
                     break;
@@ -130,8 +132,8 @@ public class ServerMain : MonoBehaviour{
         //Enviar datos
         //serverSocket.SendTo(dataSend, clientAddress); //Sin simular latencia
         StartCoroutine(sendToClientSimulateLatency(dataSend, clientAddress));//🎲 Simulacion de latencia
+        Debug.Log("enviado ");
     }
-
 
     //---------------------------------------------------------------
 

@@ -832,6 +832,8 @@ MonoBehaviour:
   serverIp: 192.168.0.163
   serverPort: 1999
   validatePhysic: {fileID: 874428585}
+  lastTickServer: 0
+  del: 0
 --- !u!114 &874428585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1140,7 +1142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c3bae8e5a957d34087d1e836acaf4c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conectServer: {fileID: 874428584}
+  connectServer: {fileID: 874428584}
   validatePhysic: {fileID: 874428585}
   sliderLatency: {fileID: 1983057082}
   textLatency: {fileID: 930135156}
