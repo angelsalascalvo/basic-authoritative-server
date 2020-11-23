@@ -91,6 +91,24 @@ public class ServerMain : MonoBehaviour{
                     if (StaticMethods.percent(0)) {
                         Debug.Log("Paquete perdido");
                     } else {
+                        int lenghtTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
+                        //Recorrer cada tick recibido
+                        for (int i = 0; i < lenghtTicks; i++) { 
+                            //Comprobar si el tick en cuestion se ha ejecutado en el servidor
+                            //El envío redundante puede causarse debido a que el cliente cuando envia su mensaje de tick 
+                            //aun no haya recibido el acuse de recibo de un tick ejecutado en el servidor, o incluso que 
+                            //este mensaje se haya perdido en la comunicacion
+
+
+
+
+
+
+
+
+                        }
+
+
 
                         switch (br.ReadByte()) {
                             case 1:
@@ -105,8 +123,7 @@ public class ServerMain : MonoBehaviour{
                         }
 
                         //StaticMethods.debugDatagram(dataRec);
-                        Debug.Log("recibido:");
- 
+
                     }
 
                     break;
