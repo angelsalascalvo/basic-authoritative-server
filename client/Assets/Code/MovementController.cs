@@ -9,9 +9,9 @@ using System.IO;
  */
 public class MovementController : MonoBehaviour{
     
-    private struct TickList {
-        public byte[] dataTicks;
-        public int lengthTicksList;
+    private struct Input {
+        public int tick;
+        public byte direction;
     }
 
     //// REF PUB
@@ -69,12 +69,26 @@ public class MovementController : MonoBehaviour{
                         rb.velocity = new Vector2(0, rb.velocity.y);
                         break;
                 }
+                
+                Debug.Log("=============== TICK " + tick + " ===============");
+                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
 
                 //Agregar el listado de ticks sin recibir por parte del servidor
-                TickList tickList = createListTickServer();
-                bw.Write(tickList.lengthTicksList);
-                bw.Write(tickList.dataTicks);
-               
+                List<Input> listInput = createListInputToServer();
+
+                bw.Write((int)listInput.Count);
+                Debug.Log("Input concatenados" + listInput.Count);
+                foreach (Input input in listInput) {
+                   
+                    bw.Write(input.tick);
+                    bw.Write(input.direction);
+                    Debug.Log("agregado tick" + input.tick + " direccion " + input.direction);
+                }
+
+
+                Debug.Log("==========================================\n");
+
+
                 Physics2D.Simulate(Time.fixedDeltaTime);
                 //conectServer.sendDataToServer(data); //Sin simular latencia
                 StartCoroutine(sendToServerSimulateLatency(data));//🎲 Simulacion de latencia
@@ -90,32 +104,19 @@ public class MovementController : MonoBehaviour{
     //---------------------------------------------------------------
 
     /**
-     * Comprueba cuales son los tick no recibidos por el servidor y elabora un array de bytes con los datos de los mismos
+     * Comprueba cuales son los tick no recibidos por el servidor y elabora un listado con los datos de los mismos
      */
-    private TickList createListTickServer(){
-        int lengthTicksList = 0;
-        byte[] dataTicks = new byte[508];
-        BinaryWriter bw = new BinaryWriter(new MemoryStream(dataTicks));
-        Debug.Log("=============== TICK " + tick + " ===============");
-
+    private List<Input> createListInputToServer(){
+        List<Input> listInput = new List<Input>();
         //Comprobar cuales son los tick aun no recibidos por el servidor para volver a enviarselo 
         //por si se ha producido alguna perdida de alguno de ellos.
-        Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
-        for (int i = connectServer.getLastTickServer() + 1; i <= tick; i++) {
-            bw.Write(i);
-            bw.Write(validatePhysic.readInputsBuffer(i));
-            lengthTicksList++;
-            Debug.Log("agregado tick" + i + " input " + validatePhysic.readInputsBuffer(i));
+        for (int i = connectServer.getLastTickServer(); i <= tick; i++) {
+            Input input;
+            input.tick = i;
+            input.direction = validatePhysic.readInputsBuffer(i);
+            listInput.Add(input);
         }
-        bw.Write((byte)255); //Marca final para detectar cuando se acaba el listado de inputs
-        Debug.Log("enviar paquete del tick " + tick);
-        Debug.Log("==========================================\n");
-
-        TickList tickList;
-        tickList.dataTicks = dataTicks;
-        tickList.lengthTicksList = lengthTicksList;
-
-        return tickList;
+        return listInput;
     }
 
     //---------------------------------------------------------------

@@ -89,38 +89,31 @@ public class ServerMain : MonoBehaviour{
 
                     //🎲 Simulacion perdida paquetes: Probabilidad de que el paquete se pierda
                     if (StaticMethods.percent(0)) {
-                        Debug.Log("Paquete perdido");
+                        Debug.LogWarning("Paquete perdido");
                     } else {
-                        int lenghtTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
+                        int lengthTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
                         //Recorrer cada tick recibido
-                        for (int i = 0; i < lenghtTicks; i++) { 
-                            //Comprobar si el tick en cuestion se ha ejecutado en el servidor
-                            //El envío redundante puede causarse debido a que el cliente cuando envia su mensaje de tick 
-                            //aun no haya recibido el acuse de recibo de un tick ejecutado en el servidor, o incluso que 
-                            //este mensaje se haya perdido en la comunicacion
+                        for (int i = 0; i < lengthTicks; i++) {
+                           
+                            //Leer datos del datagrama
+                            int tick = br.ReadInt32();
+                            EnumDirection dir = EnumDirection.None;
+                            switch (br.ReadByte()) {
+                                case 1:
+                                    dir = EnumDirection.Left;
+                                    break;
+                                case 2:
+                                    dir = EnumDirection.Right;
+                                    break;
+                            }
 
-
-
-
-
-
-
-
+                            
+                            UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(dir, tick));
+                            
                         }
 
 
-
-                        switch (br.ReadByte()) {
-                            case 1:
-                                UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(EnumDirection.Left));
-                                break;
-                            case 2:
-                                UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(EnumDirection.Right));
-                                break;
-                            case 0:
-                                UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(EnumDirection.None));
-                                break;
-                        }
+                        
 
                         //StaticMethods.debugDatagram(dataRec);
 
@@ -149,7 +142,7 @@ public class ServerMain : MonoBehaviour{
         //Enviar datos
         //serverSocket.SendTo(dataSend, clientAddress); //Sin simular latencia
         StartCoroutine(sendToClientSimulateLatency(dataSend, clientAddress));//🎲 Simulacion de latencia
-        Debug.Log("enviado ");
+
     }
 
     //---------------------------------------------------------------
