@@ -17,10 +17,7 @@ public class ServerMain : MonoBehaviour{
     public string ipServer;
     public int portServer;
     public MovePlayer movePlayer;
-    // 🎲 Simulacion latencia
-    [Header("Latency Simulate")]
-    public Slider sliderLatency;
-    public Text textLatency;
+    
 
 
     private Socket serverSocket;
@@ -41,14 +38,6 @@ public class ServerMain : MonoBehaviour{
         thListenClients = new Thread(new ThreadStart(listen));
         thListenClients.Start();
     }
-    
-    //---------------------------------------------------------------
-
-    private void Update() {
-        //🎲 Simulacion de latencia
-        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
-    }
-
 
     //---------------------------------------------------------------
 
@@ -86,37 +75,25 @@ public class ServerMain : MonoBehaviour{
 
                 //Movimiento del personaje
                 case 2:
-
-                    //🎲 Simulacion perdida paquetes: Probabilidad de que el paquete se pierda
-                    if (StaticMethods.percent(0)) {
-                        Debug.LogWarning("Paquete perdido");
-                    } else {
-                        int lengthTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
-                        //Recorrer cada tick recibido
-                        for (int i = 0; i < lengthTicks; i++) {
+                    int lengthTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
+                    //Recorrer cada tick recibido
+                    for (int i = 0; i < lengthTicks; i++) {
                            
-                            //Leer datos del datagrama
-                            int tick = br.ReadInt32();
-                            EnumDirection dir = EnumDirection.None;
-                            switch (br.ReadByte()) {
-                                case 1:
-                                    dir = EnumDirection.Left;
-                                    break;
-                                case 2:
-                                    dir = EnumDirection.Right;
-                                    break;
-                            }
-
-                            
-                            UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(dir, tick));
-                            
+                        //Leer datos del datagrama
+                        int tick = br.ReadInt32();
+                        EnumDirection dir = EnumDirection.None;
+                        switch (br.ReadByte()) {
+                            case 1:
+                                dir = EnumDirection.Left;
+                                break;
+                            case 2:
+                                dir = EnumDirection.Right;
+                                break;
                         }
 
-
-                        
-
-                        //StaticMethods.debugDatagram(dataRec);
-
+                            
+                        UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(dir, tick));
+                            
                     }
 
                     break;
@@ -127,10 +104,9 @@ public class ServerMain : MonoBehaviour{
     //------------------------------------------------------------------------
 
     /**
-     * METODO ENVIAR MENSAJE AL SERVIDOR
+     * METODO ENVIAR MENSAJE DE ESTADO AL CLIENTE
      */
     public void sendStatusToClient(int tick, Vector2 position) {
-
         byte[] dataSend = new byte[508];
         BinaryWriter bw = new BinaryWriter(new MemoryStream(dataSend));
         bw.Write((byte)3); //ActionCode 3
@@ -140,20 +116,9 @@ public class ServerMain : MonoBehaviour{
         bw.Write(position.y);
 
         //Enviar datos
-        //serverSocket.SendTo(dataSend, clientAddress); //Sin simular latencia
-        StartCoroutine(sendToClientSimulateLatency(dataSend, clientAddress));//🎲 Simulacion de latencia
-
+        serverSocket.SendTo(dataSend, clientAddress); //Sin simular latencia
     }
 
-    //---------------------------------------------------------------
-
-    /**
-     * 🎲 Simulacion de latencia
-     * Corrutina que espera X segundos antes de enviar los datos al servidor 
-     */
-    IEnumerator sendToClientSimulateLatency(byte[] dataSend, IPEndPoint clientAddress) {
-        yield return new WaitForSeconds(sliderLatency.value / 1000);
-        serverSocket.SendTo(dataSend, clientAddress);
-    }
+    
 }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /**
  * FUNCIONALIDAD DEL SCRIPT
@@ -8,11 +9,26 @@ using UnityEngine;
 public class MovePlayer : MonoBehaviour{
     Rigidbody2D rb;
     public int tickExecuted = -1;
-
     public ServerMain serverMain;
+
+    // 🎲 Simulacion perdida de datagramas
+    [Header("Lost Datagram Simulate")]
+    public Slider sliderLostDatagram;
+    public Text textLostDatagram;
+    // 🎲 Simulacion latencia
+    [Header("Latency Simulate")]
+    public Slider sliderLatency;
+    public Text textLatency;
 
     private void Start() {
         rb = GetComponent<Rigidbody2D>();
+    }
+
+    private void Update() {
+        // 🎲 Simulacion perdida de datagramas
+        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
+        //🎲 Simulacion de latencia
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
     }
 
     public void move(EnumDirection direction, int tick) {
@@ -36,9 +52,28 @@ public class MovePlayer : MonoBehaviour{
             }
             Physics2D.Simulate(Time.fixedDeltaTime);
             Debug.Log("Procesado" + tick);
-            serverMain.sendStatusToClient(tickExecuted, rb.position);
+
+            //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
+            if (StaticMethods.percent((short)sliderLostDatagram.value)) {
+                Debug.LogWarning("Paquete perdido");
+            } else {
+                //🎲 Simulacion de latencia
+                StartCoroutine(sendToClientSimulateLatency(tickExecuted, rb.position));
+            }
         }
     }
-    
+
+
+    //---------------------------------------------------------------
+
+    /**
+     * 🎲 Simulacion de latencia
+     * Corrutina que espera X segundos antes de enviar los datos al servidor 
+     */
+    IEnumerator sendToClientSimulateLatency(int tickExecuted, Vector2 position) {
+        yield return new WaitForSeconds(sliderLatency.value / 1000);
+        serverMain.sendStatusToClient(tickExecuted, position);
+    }
+
 
 }

@@ -81,17 +81,14 @@ public class ConnectServer : MonoBehaviour{
                     break;
                 //Mensaje de estado
                 case 3:
-                    //🎲 Simulacion perdida paquetes: Probabilidad de que el paquete se pierda
-                    if (StaticMethods.percent(0)) { 
-                        Debug.Log("Paquete perdido");
-                    } else {
-                        lastTickServer = br.ReadInt32();
-                        Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
-                        validatePhysic.validate(lastTickServer, positionServer);
+
+                    lastTickServer = br.ReadInt32();
+                    Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
+                    validatePhysic.validate(lastTickServer, positionServer);
                         
-                        Debug.Log(del);
-                        del++;
-                    }
+                    Debug.Log(del);
+                    del++;
+                    
                     break;
             }
         }

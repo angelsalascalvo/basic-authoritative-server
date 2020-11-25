@@ -21,6 +21,11 @@ public class MovementController : MonoBehaviour{
     [Header("Latency Simulate")]
     public Slider sliderLatency;
     public Text textLatency;
+    // 🎲 Simulacion perdida de datagramas
+    [Header("Lost Datagram Simulate")]
+    public Slider sliderLostDatagram;
+    public Text textLostDatagram;
+
 
 
     //// VAR PRI
@@ -29,6 +34,7 @@ public class MovementController : MonoBehaviour{
 
     private float timer;
     private int tick = 0;
+    private short limitsInputs = 50;
 
     //---------------------------------------------------------------
 
@@ -76,22 +82,30 @@ public class MovementController : MonoBehaviour{
                 //Agregar el listado de ticks sin recibir por parte del servidor
                 List<Input> listInput = createListInputToServer();
 
-                bw.Write((int)listInput.Count);
-                Debug.Log("Input concatenados" + listInput.Count);
-                foreach (Input input in listInput) {
-                   
-                    bw.Write(input.tick);
-                    bw.Write(input.direction);
-                    Debug.Log("agregado tick" + input.tick + " direccion " + input.direction);
+                int countInputs = Mathf.Min((int)listInput.Count, limitsInputs); //Obtener el numero de inputs a enviar con un maximo de {limitsInputs}
+                bw.Write(countInputs); //
+                Debug.Log("Input concatenados" + countInputs);
+                //Obtener los n ultimos resultamos del listado para evitar desbordar el array de bytes del datagrama 
+                //con una cantidad demasiado grande de inputs
+                for (int i = Mathf.Max(0, listInput.Count - limitsInputs); i < listInput.Count; ++i) {
+                    bw.Write(listInput[i].tick);
+                    bw.Write(listInput[i].direction);
+                    Debug.Log("agregado tick" + listInput[i].tick + " direccion " + listInput[i].direction);
                 }
-
 
                 Debug.Log("==========================================\n");
 
 
                 Physics2D.Simulate(Time.fixedDeltaTime);
-                //conectServer.sendDataToServer(data); //Sin simular latencia
-                StartCoroutine(sendToServerSimulateLatency(data));//🎲 Simulacion de latencia
+
+                //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
+                if (StaticMethods.percent((short)sliderLostDatagram.value)) {
+                    Debug.LogWarning("Paquete perdido");
+                } else {
+                    //🎲 Simulacion de latencia
+                    StartCoroutine(sendToServerSimulateLatency(data));
+                }
+
                 validatePhysic.savePositionBuffer(tick, transform.position);
                 tick++;
             }
@@ -99,6 +113,8 @@ public class MovementController : MonoBehaviour{
 
         //🎲 Simulacion de latencia
         textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+        // 🎲 Simulacion perdida de datagramas
+        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
     }
 
     //---------------------------------------------------------------
@@ -110,7 +126,7 @@ public class MovementController : MonoBehaviour{
         List<Input> listInput = new List<Input>();
         //Comprobar cuales son los tick aun no recibidos por el servidor para volver a enviarselo 
         //por si se ha producido alguna perdida de alguno de ellos.
-        for (int i = connectServer.getLastTickServer(); i <= tick; i++) {
+        for (int i = connectServer.getLastTickServer(); i<=tick; i++) {
             Input input;
             input.tick = i;
             input.direction = validatePhysic.readInputsBuffer(i);
