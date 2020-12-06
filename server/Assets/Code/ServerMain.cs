@@ -81,17 +81,9 @@ public class ServerMain : MonoBehaviour{
                            
                         //Leer datos del datagrama
                         int tick = br.ReadInt32();
-                        EnumDirection dir = EnumDirection.None;
-                        switch (br.ReadByte()) {
-                            case 1:
-                                dir = EnumDirection.Left;
-                                break;
-                            case 2:
-                                dir = EnumDirection.Right;
-                                break;
-                        }
-
-                            
+                        //Parsear byte to enum
+                        EnumDirection dir = (EnumDirection)Enum.ToObject(typeof(EnumDirection), br.ReadByte());
+                                   
                         UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(dir, tick));
                             
                     }

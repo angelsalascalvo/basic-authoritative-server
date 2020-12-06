@@ -979,6 +979,7 @@ MonoBehaviour:
   textLostDatagram: {fileID: 994006743}
   sliderLatency: {fileID: 1142968843}
   textLatency: {fileID: 1843837601}
+  DEL: 1
 --- !u!1 &1129346485
 GameObject:
   m_ObjectHideFlags: 0

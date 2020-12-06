@@ -20,6 +20,7 @@ public class MovePlayer : MonoBehaviour{
     public Slider sliderLatency;
     public Text textLatency;
 
+    public bool DEL=true;
     private void Start() {
         rb = GetComponent<Rigidbody2D>();
     }
@@ -29,6 +30,7 @@ public class MovePlayer : MonoBehaviour{
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
         //🎲 Simulacion de latencia
         textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+        Debug.LogError("v: " + rb.velocity.y);
     }
 
     public void move(EnumDirection direction, int tick) {
@@ -45,6 +47,14 @@ public class MovePlayer : MonoBehaviour{
                     break;
                 case EnumDirection.Right:
                     rb.velocity = new Vector2(3f, rb.velocity.y);
+                    break;
+                case EnumDirection.Jump:
+                    if (DEL) {
+                        DEL = false;
+
+
+                    rb.velocity = new Vector2(rb.velocity.x, 6f);
+                    }
                     break;
                 case EnumDirection.None:
                     rb.velocity = new Vector2(0, rb.velocity.y);

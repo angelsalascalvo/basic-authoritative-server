@@ -52,26 +52,25 @@ public class MovementController : MonoBehaviour{
 
         while (timer >= Time.fixedDeltaTime) {
             timer -= Time.fixedDeltaTime;
-
+            Debug.LogWarning("paso");
             if (connectServer.isConnected()) {
                 byte[] data = new byte[508];
                 BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
 
-
                 bw.Write((byte)2); //ActionCode 2.
-
+                validatePhysic.saveInputsBuffer(tick, (byte)direction);
                 switch (direction) {
                     case EnumDirection.Left:
-                        data[1] = 1;
-                        validatePhysic.saveInputsBuffer(tick, 1);
                         rb.velocity = new Vector2(-3f, rb.velocity.y);
                         break;
                     case EnumDirection.Right:
-                        validatePhysic.saveInputsBuffer(tick, 2);
                         rb.velocity = new Vector2(3f, rb.velocity.y);
                         break;
+                    case EnumDirection.Jump:
+                        Debug.LogWarning("Jump");
+                        rb.AddForce(new Vector2(0, 60f));
+                        break;
                     case EnumDirection.None:
-                        validatePhysic.saveInputsBuffer(tick, 0);
                         rb.velocity = new Vector2(0, rb.velocity.y);
                         break;
                 }
@@ -96,7 +95,7 @@ public class MovementController : MonoBehaviour{
                 Debug.Log("==========================================\n");
 
 
-                Physics2D.Simulate(Time.fixedDeltaTime);
+                Physics2D.Simulate(Time.fixedDeltaTime); //¿Es realmente necesario simular fisica en cliente? Si no se simula podemos migrar código a Fixed update
 
                 //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
                 if (StaticMethods.percent((short)sliderLostDatagram.value)) {
@@ -116,7 +115,9 @@ public class MovementController : MonoBehaviour{
         // 🎲 Simulacion perdida de datagramas
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
     }
-
+    private void FixedUpdate() {
+        Debug.LogWarning("pasoFixed");
+    }
     //---------------------------------------------------------------
 
     /**

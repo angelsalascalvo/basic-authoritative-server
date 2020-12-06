@@ -5,6 +5,6 @@ using UnityEngine;
 /**
  * FUNCIONALIDAD DEL SCRIPT
  */
-public enum EnumDirection{
-   Left, Right, None
+public enum EnumDirection {
+    None, Left, Right, Jump
 }
