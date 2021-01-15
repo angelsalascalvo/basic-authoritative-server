@@ -67,6 +67,7 @@ server/.consulo/
 
 # Unity3D generated file on crash reports
 client/sysinfo.txt
+server/sysinfo.txt
 
 # Builds
 *.apk
