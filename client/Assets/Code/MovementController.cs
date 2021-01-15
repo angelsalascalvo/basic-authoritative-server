@@ -9,11 +9,6 @@ using System.IO;
  */
 public class MovementController : MonoBehaviour{
     
-    private struct Input {
-        public int tick;
-        public byte direction;
-    }
-
     //// REF PUB
     public ConnectServer connectServer;
     public ValidatePhysic validatePhysic;
@@ -26,15 +21,14 @@ public class MovementController : MonoBehaviour{
     public Slider sliderLostDatagram;
     public Text textLostDatagram;
 
-
-
     //// VAR PRI
     private Rigidbody2D rb;
-    private EnumDirection direction = EnumDirection.None;
+    private EnumDisplacement displacement = EnumDisplacement.None;
+    private bool jump = false;
 
     private float timer;
     private int tick = 0;
-    private short limitsInputs = 50;
+    private short limitsInputs = 80;
 
     //---------------------------------------------------------------
 
@@ -43,6 +37,7 @@ public class MovementController : MonoBehaviour{
      */
     void Start(){
         rb = GetComponent<Rigidbody2D>();
+        Debug.Log(Time.fixedDeltaTime);
     }
 
     //---------------------------------------------------------------
@@ -58,41 +53,42 @@ public class MovementController : MonoBehaviour{
                 BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
 
                 bw.Write((byte)2); //ActionCode 2.
-                validatePhysic.saveInputsBuffer(tick, (byte)direction);
-                switch (direction) {
-                    case EnumDirection.Left:
+                validatePhysic.saveInputsBuffer(tick, (byte)displacement, jump);
+                switch (displacement) {
+                    case EnumDisplacement.Left:
                         rb.velocity = new Vector2(-3f, rb.velocity.y);
                         break;
-                    case EnumDirection.Right:
+                    case EnumDisplacement.Right:
                         rb.velocity = new Vector2(3f, rb.velocity.y);
                         break;
-                    case EnumDirection.Jump:
-                        Debug.LogWarning("Jump");
-                        rb.AddForce(new Vector2(0, 60f));
-                        break;
-                    case EnumDirection.None:
+                    case EnumDisplacement.None:
                         rb.velocity = new Vector2(0, rb.velocity.y);
                         break;
                 }
-                
-                Debug.Log("=============== TICK " + tick + " ===============");
-                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
+
+                if (jump) {
+                    rb.AddForce(Vector2.up * 30f);
+                }
+
+                //                Debug.Log("=============== TICK " + tick + " ===============");
+                //                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
 
                 //Agregar el listado de ticks sin recibir por parte del servidor
                 List<Input> listInput = createListInputToServer();
 
-                int countInputs = Mathf.Min((int)listInput.Count, limitsInputs); //Obtener el numero de inputs a enviar con un maximo de {limitsInputs}
+                short countInputs = (short) Mathf.Min((short)listInput.Count, limitsInputs); //Obtener el numero de inputs a enviar con un maximo de {limitsInputs}
                 bw.Write(countInputs); //
-                Debug.Log("Input concatenados" + countInputs);
+//              Debug.Log("Input concatenados" + countInputs);
                 //Obtener los n ultimos resultamos del listado para evitar desbordar el array de bytes del datagrama 
                 //con una cantidad demasiado grande de inputs
                 for (int i = Mathf.Max(0, listInput.Count - limitsInputs); i < listInput.Count; ++i) {
                     bw.Write(listInput[i].tick);
-                    bw.Write(listInput[i].direction);
-                    Debug.Log("agregado tick" + listInput[i].tick + " direccion " + listInput[i].direction);
+                    bw.Write(listInput[i].displacement);
+                    bw.Write(listInput[i].jump);
+//                    Debug.Log("agregado tick" + listInput[i].tick + " direccion " + listInput[i].direction);
                 }
 
-                Debug.Log("==========================================\n");
+              Debug.Log("1");
 
 
                 Physics2D.Simulate(Time.fixedDeltaTime); //¿Es realmente necesario simular fisica en cliente? Si no se simula podemos migrar código a Fixed update
@@ -115,9 +111,7 @@ public class MovementController : MonoBehaviour{
         // 🎲 Simulacion perdida de datagramas
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
     }
-    private void FixedUpdate() {
-        Debug.LogWarning("pasoFixed");
-    }
+
     //---------------------------------------------------------------
 
     /**
@@ -130,7 +124,8 @@ public class MovementController : MonoBehaviour{
         for (int i = connectServer.getLastTickServer(); i<=tick; i++) {
             Input input;
             input.tick = i;
-            input.direction = validatePhysic.readInputsBuffer(i);
+            input.displacement = validatePhysic.readInputsBuffer(i).displacement;
+            input.jump = validatePhysic.readInputsBuffer(i).jump;
             listInput.Add(input);
         }
         return listInput;
@@ -150,10 +145,16 @@ public class MovementController : MonoBehaviour{
 
     //---------------------------------------------------------------
 
-    public void setMovement(EnumDirection direction) {
-        this.direction = direction;
+    public void setMovement(EnumDisplacement displacement) {
+        this.displacement = displacement;
     }
-   
+
+    public void setJump(bool jump) {
+        this.jump = jump;
+    }
+
+    public int getTick() {
+        return tick;
+    }
 
 }
-

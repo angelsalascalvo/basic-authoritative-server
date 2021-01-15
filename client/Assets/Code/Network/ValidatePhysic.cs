@@ -7,14 +7,17 @@ using UnityEngine;
  */
 public class ValidatePhysic : MonoBehaviour{
 
-    private static short size = 1024;
     public GameObject player;
-    Vector2[] bufferPosition;
-    byte[] bufferInputs;
+    public MovementController movementController;
+
+
+    private static short size = 1024;
+    private Vector2[] bufferPosition;
+    private Input[] bufferInputs;
 
     private void Start() {
         bufferPosition = new Vector2[size];
-        bufferInputs = new byte[size];
+        bufferInputs = new Input[size];
     }
 
     //----------------------------------------------------------------------------
@@ -22,7 +25,11 @@ public class ValidatePhysic : MonoBehaviour{
     /**
      * Guardar entradas ejecutadas para cada tick
      */
-    public void saveInputsBuffer(int tick, byte input) {
+    public void saveInputsBuffer(int tick, byte displacement, bool jump) {
+        Input input;
+        input.tick = tick;
+        input.displacement = displacement;
+        input.jump = jump;
         bufferInputs[getIndex(tick)] = input;
     }
 
@@ -31,7 +38,7 @@ public class ValidatePhysic : MonoBehaviour{
     /**
      * Obtener entradas ejecutadas para un determinado tick
      */
-    public byte readInputsBuffer(int tick) {
+    public Input readInputsBuffer(int tick) {
        return bufferInputs[getIndex(tick)];
     }
 
@@ -53,10 +60,11 @@ public class ValidatePhysic : MonoBehaviour{
      */
     public void validate(int tick, Vector2 targetPosition) {
         //Las posiciones en servidor y cliente no coinciden
+        Debug.Log("recibido:" + tick + " real:" + movementController.getTick());
         if (bufferPosition[getIndex(tick)] != targetPosition) {
             //Rebobinar el cliente con la posicion real (servidor)
             UnityMainThreadDispatcher.Instance().Enqueue(() => player.transform.position = targetPosition);
-            Debug.Log("rebobinado para el tick "+tick+" se esperaba:" + targetPosition.x + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].x);
+            Debug.Log("rebobinado para el tick "+tick+" se esperaba:" + targetPosition.y + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].y);
         }
     }
 

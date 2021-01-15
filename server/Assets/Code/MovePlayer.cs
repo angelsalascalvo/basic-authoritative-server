@@ -30,10 +30,9 @@ public class MovePlayer : MonoBehaviour{
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
         //🎲 Simulacion de latencia
         textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
-        Debug.LogError("v: " + rb.velocity.y);
     }
 
-    public void move(EnumDirection direction, int tick) {
+    public void move(int tick, EnumDisplacement direction, bool jump) {
         
         //Comprobar si el tick en cuestion se ha ejecutado en el servidor
         //El envío redundante puede causarse debido a que el cliente cuando envia su mensaje de tick 
@@ -42,23 +41,18 @@ public class MovePlayer : MonoBehaviour{
         if (tick > tickExecuted) {
             tickExecuted = tick;
             switch (direction) {
-                case EnumDirection.Left:
+                case EnumDisplacement.Left:
                     rb.velocity = new Vector2(-3f, rb.velocity.y);
                     break;
-                case EnumDirection.Right:
+                case EnumDisplacement.Right:
                     rb.velocity = new Vector2(3f, rb.velocity.y);
                     break;
-                case EnumDirection.Jump:
-                    if (DEL) {
-                        DEL = false;
-
-
-                    rb.velocity = new Vector2(rb.velocity.x, 6f);
-                    }
-                    break;
-                case EnumDirection.None:
+                case EnumDisplacement.None:
                     rb.velocity = new Vector2(0, rb.velocity.y);
                     break;
+            }
+            if (jump) {
+                rb.AddForce(Vector2.up * 30f);
             }
             Physics2D.Simulate(Time.fixedDeltaTime);
             Debug.Log("Procesado" + tick);
@@ -82,6 +76,7 @@ public class MovePlayer : MonoBehaviour{
      */
     IEnumerator sendToClientSimulateLatency(int tickExecuted, Vector2 position) {
         yield return new WaitForSeconds(sliderLatency.value / 1000);
+        Debug.Log("enviado " + position.y);
         serverMain.sendStatusToClient(tickExecuted, position);
     }
 

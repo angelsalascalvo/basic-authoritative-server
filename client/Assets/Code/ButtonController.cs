@@ -1,23 +1,36 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems; // 1
+using UnityEngine.EventSystems; 
 
 /**
- * FUNCIONALIDAD DEL SCRIPT
+ * SCRIPT GENERICO EFECTUAR UN MOVIMIENTO AL PULSAR UN ELEMENTO O BOTON TACTIL
  */
 public class ButtonController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
     //// REF PUB
     public MovementController movementScript;
-    public EnumDirection direction;
+    public bool jump = false;
+    public EnumDisplacement displacement;
 
+    /**
+     * Al pulsar el elemento
+     */
     public void OnPointerDown(PointerEventData eventData) {
-        movementScript.setMovement(direction);
-
+        if (jump) {
+            movementScript.setJump(true);
+        } else {
+            movementScript.setMovement(displacement);
+        }
     }
 
+    /**
+     * Al soltar el elemento
+     */
     public void OnPointerUp(PointerEventData eventData) {
-        Debug.Log("solta");
-        movementScript.setMovement(EnumDirection.None);
+        if (jump) {
+            movementScript.setJump(false);
+        } else {
+            movementScript.setMovement(EnumDisplacement.None);
+        }
     }
 }

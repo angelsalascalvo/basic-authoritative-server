@@ -75,16 +75,18 @@ public class ServerMain : MonoBehaviour{
 
                 //Movimiento del personaje
                 case 2:
-                    int lengthTicks = br.ReadInt32(); //Cantidad de ticks enviados por el datagrama
+                    short lengthTicks = br.ReadInt16(); //Cantidad de ticks enviados por el datagrama
                     //Recorrer cada tick recibido
                     for (int i = 0; i < lengthTicks; i++) {
                            
                         //Leer datos del datagrama
                         int tick = br.ReadInt32();
-                        //Parsear byte to enum
-                        EnumDirection dir = (EnumDirection)Enum.ToObject(typeof(EnumDirection), br.ReadByte());
-                                   
-                        UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(dir, tick));
+                        //Parsear byte to enum desplazamiento
+                        EnumDisplacement displacement = (EnumDisplacement)Enum.ToObject(typeof(EnumDisplacement), br.ReadByte());
+                        //Leer bool salto
+                        bool jump = br.ReadBoolean();
+
+                        UnityMainThreadDispatcher.Instance().Enqueue(() => movePlayer.move(tick, displacement, jump));
                             
                     }
 

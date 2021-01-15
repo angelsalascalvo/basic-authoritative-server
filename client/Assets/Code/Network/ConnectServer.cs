@@ -27,7 +27,6 @@ public class ConnectServer : MonoBehaviour{
     private bool connect = false;
     public int lastTickServer = 0;
 
-    public int del=0;
 
     ///////////////////////////////////////////////////////////////////////////////////////
     //                                      METODOS                                      //
@@ -85,10 +84,7 @@ public class ConnectServer : MonoBehaviour{
                     lastTickServer = br.ReadInt32();
                     Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
                     validatePhysic.validate(lastTickServer, positionServer);
-                        
-                    Debug.Log(del);
-                    del++;
-                    
+                                  
                     break;
             }
         }
