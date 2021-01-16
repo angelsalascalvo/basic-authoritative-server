@@ -15,6 +15,8 @@ public class ValidatePhysic : MonoBehaviour{
     private Vector2[] bufferPosition;
     private Input[] bufferInputs;
 
+    private short correction = 0;
+
     private void Start() {
         bufferPosition = new Vector2[size];
         bufferInputs = new Input[size];
@@ -59,12 +61,28 @@ public class ValidatePhysic : MonoBehaviour{
      * Comprobar que la posicion ejecutada en local coincide con la del servidor
      */
     public void validate(int tick, Vector2 targetPosition) {
-        //Las posiciones en servidor y cliente no coinciden
-        Debug.Log("recibido:" + tick + " real:" + movementController.getTick());
-        if (bufferPosition[getIndex(tick)] != targetPosition) {
-            //Rebobinar el cliente con la posicion real (servidor)
-            UnityMainThreadDispatcher.Instance().Enqueue(() => player.transform.position = targetPosition);
-            Debug.Log("rebobinado para el tick "+tick+" se esperaba:" + targetPosition.y + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].y);
+        correction++;
+        if (correction >= 30) {
+            correction = 0;
+            //Las posiciones en servidor y cliente no coinciden
+            if (bufferPosition[getIndex(tick)] != targetPosition) {
+                //Rebobinar el cliente con la posicion real (servidor)
+                UnityMainThreadDispatcher.Instance().Enqueue(() => player.transform.position = targetPosition);
+                Debug.LogWarning("rebobinado para el tick " + tick + " se esperaba:" + targetPosition.y + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].y);
+            }
+
+
+            UnityMainThreadDispatcher.Instance().Enqueue(() => movementController.correctionPosition(targetPosition));
+
+               
+            /*
+            //Las posiciones en servidor y cliente no coinciden
+            if (movementController.getPosition() - targetPosition) {
+                //Rebobinar el cliente con la posicion real (servidor)
+                UnityMainThreadDispatcher.Instance().Enqueue(() => player.transform.position = targetPosition);
+                Debug.Log("rebobinado para el tick " + tick + " se esperaba:" + targetPosition.y + " pero en local se ha ejecutado " + bufferPosition[getIndex(tick)].y);
+            }
+            */
         }
     }
 

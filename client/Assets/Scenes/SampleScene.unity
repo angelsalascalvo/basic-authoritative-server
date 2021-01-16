@@ -325,7 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementScript: {fileID: 1064072764}
   jump: 0
-  displacement: 0
+  displacement: 1
 --- !u!114 &183125709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -705,6 +705,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1064072759}
+  movementController: {fileID: 1064072764}
 --- !u!1 &930135154
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,7 +1059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementScript: {fileID: 1064072764}
   jump: 0
-  displacement: 0
+  displacement: 2
 --- !u!114 &1110268705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1793,7 +1794,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementScript: {fileID: 1064072764}
-  jump: 0
+  jump: 1
   displacement: 0
 --- !u!114 &1874431225
 MonoBehaviour:

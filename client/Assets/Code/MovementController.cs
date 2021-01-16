@@ -12,6 +12,7 @@ public class MovementController : MonoBehaviour{
     //// REF PUB
     public ConnectServer connectServer;
     public ValidatePhysic validatePhysic;
+    
     // 🎲 Simulacion latencia
     [Header("Latency Simulate")]
     public Slider sliderLatency;
@@ -47,8 +48,14 @@ public class MovementController : MonoBehaviour{
 
         while (timer >= Time.fixedDeltaTime) {
             timer -= Time.fixedDeltaTime;
-            Debug.LogWarning("paso");
-            if (connectServer.isConnected()) {
+            // Debug.Log("recibido:" + tick + " real:" + connectServer.getLastTickServer() + "desfase de: " + (tick - connectServer.getLastTickServer()));
+
+            //int gap = (tick - connectServer.getLastTickServer())-3;
+            //&& !StaticMethods.percent((short)Mathf.Clamp(gap,0,100))
+
+
+
+            if (connectServer.isConnected() ){
                 byte[] data = new byte[508];
                 BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
 
@@ -143,6 +150,15 @@ public class MovementController : MonoBehaviour{
     }
 
 
+    public void correctionPosition(Vector2 serverPosition) {
+        float grap = (rb.position - serverPosition).sqrMagnitude;
+        if (grap > 6) {
+            rb.position = serverPosition;
+        }
+        Debug.Log("current " + rb.position.x + " server " + serverPosition.x + " Magnitud:" + grap);
+
+    }
+
     //---------------------------------------------------------------
 
     public void setMovement(EnumDisplacement displacement) {
@@ -155,6 +171,10 @@ public class MovementController : MonoBehaviour{
 
     public int getTick() {
         return tick;
+    }
+
+    public Vector2 getPosition() {
+        return rb.position;
     }
 
 }
