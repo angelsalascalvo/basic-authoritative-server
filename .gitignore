@@ -87,3 +87,6 @@ client/[Aa]ssets/[Ss]treamingAssets/aa.meta
 server/[Aa]ssets/[Ss]treamingAssets/aa.meta
 client/[Aa]ssets/[Ss]treamingAssets/aa/*
 server/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# ParrelSync Clone Projects
+client_clone_*
