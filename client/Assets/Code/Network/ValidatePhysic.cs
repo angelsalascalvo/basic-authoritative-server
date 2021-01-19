@@ -13,13 +13,13 @@ public class ValidatePhysic : MonoBehaviour{
 
     private static short size = 1024;
     private Vector2[] bufferPosition;
-    private Input[] bufferInputs;
+    private InputTick[] bufferInputTicks;
 
     private short correction = 0;
 
     private void Start() {
         bufferPosition = new Vector2[size];
-        bufferInputs = new Input[size];
+        bufferInputTicks = new InputTick[size];
     }
 
     //----------------------------------------------------------------------------
@@ -27,12 +27,12 @@ public class ValidatePhysic : MonoBehaviour{
     /**
      * Guardar entradas ejecutadas para cada tick
      */
-    public void saveInputsBuffer(int tick, byte displacement, bool jump) {
-        Input input;
+    public void saveInputTicksBuffer(int tick, byte displacement, bool jump) {
+        InputTick input;
         input.tick = tick;
         input.displacement = displacement;
         input.jump = jump;
-        bufferInputs[getIndex(tick)] = input;
+        bufferInputTicks[getIndex(tick)] = input;
     }
 
     //----------------------------------------------------------------------------
@@ -40,8 +40,8 @@ public class ValidatePhysic : MonoBehaviour{
     /**
      * Obtener entradas ejecutadas para un determinado tick
      */
-    public Input readInputsBuffer(int tick) {
-       return bufferInputs[getIndex(tick)];
+    public InputTick readInputTicksBuffer(int tick) {
+       return bufferInputTicks[getIndex(tick)];
     }
 
 

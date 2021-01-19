@@ -83,7 +83,7 @@ public class ConnectServer : MonoBehaviour{
 
                     lastTickServer = br.ReadInt32();
                     Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
-                    validatePhysic.validate(lastTickServer, positionServer);
+                    //validatePhysic.validate(lastTickServer, positionServer);
                                   
                     break;
             }

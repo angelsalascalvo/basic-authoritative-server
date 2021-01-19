@@ -29,7 +29,7 @@ public class MovementController : MonoBehaviour{
 
     private float timer;
     private int tick = 0;
-    private short limitsInputs = 80;
+    private short limitsInputTicks = 80;
 
     //---------------------------------------------------------------
 
@@ -60,7 +60,7 @@ public class MovementController : MonoBehaviour{
                 BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
 
                 bw.Write((byte)2); //ActionCode 2.
-                validatePhysic.saveInputsBuffer(tick, (byte)displacement, jump);
+                validatePhysic.saveInputTicksBuffer(tick, (byte)displacement, jump);
                 switch (displacement) {
                     case EnumDisplacement.Left:
                         rb.velocity = new Vector2(-3f, rb.velocity.y);
@@ -81,21 +81,19 @@ public class MovementController : MonoBehaviour{
                 //                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
 
                 //Agregar el listado de ticks sin recibir por parte del servidor
-                List<Input> listInput = createListInputToServer();
+                List<InputTick> listInputTick = createListInputTickToServer();
 
-                short countInputs = (short) Mathf.Min((short)listInput.Count, limitsInputs); //Obtener el numero de inputs a enviar con un maximo de {limitsInputs}
-                bw.Write(countInputs); //
-//              Debug.Log("Input concatenados" + countInputs);
+                short countInputTicks = (short) Mathf.Min((short)listInputTick.Count, limitsInputTicks); //Obtener el numero de inputs a enviar con un maximo de {limitsInputTicks}
+                bw.Write(countInputTicks); //
+//              Debug.Log("InputTick concatenados" + countInputTicks);
                 //Obtener los n ultimos resultamos del listado para evitar desbordar el array de bytes del datagrama 
                 //con una cantidad demasiado grande de inputs
-                for (int i = Mathf.Max(0, listInput.Count - limitsInputs); i < listInput.Count; ++i) {
-                    bw.Write(listInput[i].tick);
-                    bw.Write(listInput[i].displacement);
-                    bw.Write(listInput[i].jump);
-//                    Debug.Log("agregado tick" + listInput[i].tick + " direccion " + listInput[i].direction);
+                for (int i = Mathf.Max(0, listInputTick.Count - limitsInputTicks); i < listInputTick.Count; ++i) {
+                    bw.Write(listInputTick[i].tick);
+                    bw.Write(listInputTick[i].displacement);
+                    bw.Write(listInputTick[i].jump);
+//                    Debug.Log("agregado tick" + listInputTick[i].tick + " direccion " + listInputTick[i].direction);
                 }
-
-              Debug.Log("1");
 
 
                 Physics2D.Simulate(Time.fixedDeltaTime); //¿Es realmente necesario simular fisica en cliente? Si no se simula podemos migrar código a Fixed update
@@ -124,18 +122,18 @@ public class MovementController : MonoBehaviour{
     /**
      * Comprueba cuales son los tick no recibidos por el servidor y elabora un listado con los datos de los mismos
      */
-    private List<Input> createListInputToServer(){
-        List<Input> listInput = new List<Input>();
+    private List<InputTick> createListInputTickToServer(){
+        List<InputTick> listInputTick = new List<InputTick>();
         //Comprobar cuales son los tick aun no recibidos por el servidor para volver a enviarselo 
         //por si se ha producido alguna perdida de alguno de ellos.
         for (int i = connectServer.getLastTickServer(); i<=tick; i++) {
-            Input input;
+            InputTick input;
             input.tick = i;
-            input.displacement = validatePhysic.readInputsBuffer(i).displacement;
-            input.jump = validatePhysic.readInputsBuffer(i).jump;
-            listInput.Add(input);
+            input.displacement = validatePhysic.readInputTicksBuffer(i).displacement;
+            input.jump = validatePhysic.readInputTicksBuffer(i).jump;
+            listInputTick.Add(input);
         }
-        return listInput;
+        return listInputTick;
     }
 
     //---------------------------------------------------------------
