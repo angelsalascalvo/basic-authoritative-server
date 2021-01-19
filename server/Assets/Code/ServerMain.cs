@@ -99,6 +99,7 @@ public class ServerMain : MonoBehaviour{
                     Client client = searchClient(clientAddress);
 
                     short lengthTicks = br.ReadInt16(); //Cantidad de ticks enviados por el datagrama
+
                     //Recorrer cada tick recibido
                     for (int i = 0; i < lengthTicks; i++) {
                            
@@ -113,7 +114,8 @@ public class ServerMain : MonoBehaviour{
                         //El envío redundante puede causarse debido a que el cliente cuando envia su mensaje de tick 
                         //aun no haya recibido el acuse de recibo de un tick ejecutado en el servidor, o incluso que 
                         //este mensaje se haya perdido en la comunicacion
-                        if (tick > client.GetLastTick()) {
+                        if (tick > client.GetLastTickQueue()) {
+                            
                             InputTick inputTick;
                             inputTick.tick = tick;
                             inputTick.displacement = (EnumDisplacement) Enum.ToObject(typeof(EnumDisplacement), displacement);

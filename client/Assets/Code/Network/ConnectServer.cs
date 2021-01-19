@@ -36,7 +36,7 @@ public class ConnectServer : MonoBehaviour{
      * INICIALIZACION
      */
     void Start() {
-
+        Time.fixedDeltaTime = 0.02f;
         /// Crear socket comunicacion con servidor
         serverAddress = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -82,6 +82,7 @@ public class ConnectServer : MonoBehaviour{
                 case 3:
 
                     lastTickServer = br.ReadInt32();
+                    Debug.Log(lastTickServer);
                     Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
                     //validatePhysic.validate(lastTickServer, positionServer);
                                   

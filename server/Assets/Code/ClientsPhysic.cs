@@ -38,6 +38,7 @@ public class ClientsPhysic : MonoBehaviour {
 
 
     private void Start() {
+        Time.fixedDeltaTime = (0.02f);
         Debug.Log(Time.fixedDeltaTime);
     }
 
@@ -63,7 +64,7 @@ public class ClientsPhysic : MonoBehaviour {
                     Rigidbody2D rb = clientList[i].GetGameObject().GetComponent<Rigidbody2D>();
 
                     if (clientList[i].GetTickQueue().Count > 0) {
-
+                       
                         InputTick inputTick = clientList[i].GetTickQueue().Dequeue();
 
                         switch (inputTick.displacement) {
@@ -82,6 +83,8 @@ public class ClientsPhysic : MonoBehaviour {
                             rb.AddForce(Vector2.up * 30f);
                         }
 
+                        clientList[i].SetLastTickExecuted(inputTick.tick);
+
                     } else {
                         rb.velocity = new Vector2(0, rb.velocity.y);
                     }
@@ -92,6 +95,21 @@ public class ClientsPhysic : MonoBehaviour {
 
 
             //Enviar estado
+            /*
+            for (int i = 0; i < clientList.Count; i++) {
+
+                if (clientList[i].GetLastTickExecuted() != -1) {
+                    Debug.Log("Enviado " + clientList[i].GetLastTickExecuted());
+                    //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
+                    if (StaticMethods.percent((short)sliderLostDatagram.value)) {
+                        Debug.LogWarning("Paquete perdido");
+                    } else {
+                        //🎲 Simulacion de latencia
+                        StartCoroutine(sendToClientSimulateLatency(clientList[i].GetAddress(), clientList[i].GetLastTickExecuted(), clientList[i].GetGameObject().transform.position));
+                    }
+                }
+            }
+            */
         }
 
 
@@ -124,7 +142,6 @@ public class ClientsPhysic : MonoBehaviour {
      */
     IEnumerator sendToClientSimulateLatency(IPEndPoint clientAddress, int tickExecuted, Vector2 position) {
         yield return new WaitForSeconds(sliderLatency.value / 1000);
-        Debug.Log("enviado tick" + position.y);
         serverMain.sendStatusToClient(clientAddress, tickExecuted, position);
     }
 
