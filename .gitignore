@@ -91,3 +91,4 @@ server/[Aa]ssets/[Ss]treamingAssets/aa/*
 # ParrelSync Clone Projects
 client_clone_*
 */[Aa]ssets/ParrelSync/*
+*/[Aa]ssets/ParrelSync.meta

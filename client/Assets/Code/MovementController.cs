@@ -74,7 +74,7 @@ public class MovementController : MonoBehaviour{
                 }
 
                 if (jump) {
-                    rb.AddForce(Vector2.up * 30f);
+                    rb.velocity = new Vector2(rb.velocity.x, 5f);
                 }
 
                 //                Debug.Log("=============== TICK " + tick + " ===============");

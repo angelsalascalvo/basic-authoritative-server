@@ -120,6 +120,9 @@ public class ServerMain : MonoBehaviour{
                             inputTick.tick = tick;
                             inputTick.displacement = (EnumDisplacement) Enum.ToObject(typeof(EnumDisplacement), displacement);
                             inputTick.jump = jump;
+                            if (client.GetTickQueue().Count > 5) {
+                                client.GetTickQueue().Clear();
+                            }
                             client.AddInputTick(inputTick);
                         }
                     }

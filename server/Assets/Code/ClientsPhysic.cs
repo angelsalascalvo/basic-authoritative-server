@@ -80,13 +80,13 @@ public class ClientsPhysic : MonoBehaviour {
                         }
 
                         if (inputTick.jump) {
-                            rb.AddForce(Vector2.up * 30f);
+                            rb.velocity = new Vector2(rb.velocity.x, 5f);
                         }
 
                         clientList[i].SetLastTickExecuted(inputTick.tick);
 
                     } else {
-                        rb.velocity = new Vector2(0, rb.velocity.y);
+                        rb.velocity = new Vector2(0, 0);
                     }
                 }
             }

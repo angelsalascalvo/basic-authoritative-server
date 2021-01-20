@@ -121,6 +121,36 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &122199879
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 122199880}
+  m_Layer: 0
+  m_Name: inst3
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &122199880
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122199879}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.08, y: 1.05, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1056730443}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &290636749
 GameObject:
   m_ObjectHideFlags: 0
@@ -553,10 +583,11 @@ MonoBehaviour:
   ipServer: 192.168.0.163
   portServer: 1999
   clientsPhysic: {fileID: 863579846}
-  maxClients: 2
+  maxClients: 3
   instantiationPoints:
   - {fileID: 1210549150}
   - {fileID: 378174038}
+  - {fileID: 122199880}
 --- !u!4 &863579845
 Transform:
   m_ObjectHideFlags: 0
@@ -697,6 +728,7 @@ Transform:
   m_Children:
   - {fileID: 1210549150}
   - {fileID: 378174038}
+  - {fileID: 122199880}
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
