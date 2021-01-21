@@ -31,6 +31,10 @@ public class MovementController : MonoBehaviour{
     private int tick = 0;
     private short limitsInputTicks = 80;
 
+
+    private static int limitTickQueueSize = 5;
+    private Queue<InputTick> tickQueue;
+
     //---------------------------------------------------------------
 
     /**
@@ -38,6 +42,7 @@ public class MovementController : MonoBehaviour{
      */
     void Start(){
         rb = GetComponent<Rigidbody2D>();
+        tickQueue = new Queue<InputTick>();
         Debug.Log(Time.fixedDeltaTime);
     }
 
@@ -77,24 +82,19 @@ public class MovementController : MonoBehaviour{
                     rb.velocity = new Vector2(rb.velocity.x, 5f);
                 }
 
-                //                Debug.Log("=============== TICK " + tick + " ===============");
-                //                Debug.Log("ultimo tick del servidor:" + connectServer.getLastTickServer());
-
-                //Agregar el listado de ticks sin recibir por parte del servidor
-                List<InputTick> listInputTick = createListInputTickToServer();
-
-                short countInputTicks = (short) Mathf.Min((short)listInputTick.Count, limitsInputTicks); //Obtener el numero de inputs a enviar con un maximo de {limitsInputTicks}
-                bw.Write(countInputTicks); //
-//              Debug.Log("InputTick concatenados" + countInputTicks);
-                //Obtener los n ultimos resultamos del listado para evitar desbordar el array de bytes del datagrama 
-                //con una cantidad demasiado grande de inputs
-                for (int i = Mathf.Max(0, listInputTick.Count - limitsInputTicks); i < listInputTick.Count; ++i) {
-                    bw.Write(listInputTick[i].tick);
-                    bw.Write(listInputTick[i].displacement);
-                    bw.Write(listInputTick[i].jump);
-//                    Debug.Log("agregado tick" + listInputTick[i].tick + " direccion " + listInputTick[i].direction);
+                InputTick inputTick;
+                inputTick.tick = tick;
+                inputTick.displacement = displacement;
+                inputTick.jump = jump;
+                AddInputTick(inputTick);
+              
+                //Escribir los datos a enviar
+                bw.Write((short)tickQueue.Count);
+                foreach (InputTick it in tickQueue) {
+                    bw.Write(it.tick);
+                    bw.Write((byte)it.displacement);
+                    bw.Write(it.jump);
                 }
-
 
                 Physics2D.Simulate(Time.fixedDeltaTime); //¿Es realmente necesario simular fisica en cliente? Si no se simula podemos migrar código a Fixed update
 
@@ -117,23 +117,15 @@ public class MovementController : MonoBehaviour{
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
     }
 
+
     //---------------------------------------------------------------
 
-    /**
-     * Comprueba cuales son los tick no recibidos por el servidor y elabora un listado con los datos de los mismos
-     */
-    private List<InputTick> createListInputTickToServer(){
-        List<InputTick> listInputTick = new List<InputTick>();
-        //Comprobar cuales son los tick aun no recibidos por el servidor para volver a enviarselo 
-        //por si se ha producido alguna perdida de alguno de ellos.
-        for (int i = connectServer.getLastTickServer(); i<=tick; i++) {
-            InputTick input;
-            input.tick = i;
-            input.displacement = validatePhysic.readInputTicksBuffer(i).displacement;
-            input.jump = validatePhysic.readInputTicksBuffer(i).jump;
-            listInputTick.Add(input);
-        }
-        return listInputTick;
+    public void AddInputTick(InputTick inputTick) {
+        //Controlar tamanno maximo de la cola
+        if (tickQueue.Count > limitTickQueueSize)
+            tickQueue.Dequeue();
+
+        tickQueue.Enqueue(inputTick);
     }
 
     //---------------------------------------------------------------

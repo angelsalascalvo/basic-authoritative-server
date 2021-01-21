@@ -3,12 +3,17 @@ using System.Net;
 using UnityEngine;
 
 public class Client {
+    //VAR STA
+    private static int limitTickQueueSize = 5;
+
+    //PROP
     private int id;
     private IPEndPoint address;
     private GameObject gameObject;
     private int lastTickExecuted;
     private int lastTickQueue;
     private Queue<InputTick> tickQueue;
+   
 
     public Client(int id, IPEndPoint address) {
         this.id = id;
@@ -59,10 +64,12 @@ public class Client {
     }
 
     public void AddInputTick(InputTick inputTick) {
+        //Controlar tamanno maximo de la cola
+        if (tickQueue.Count > limitTickQueueSize)
+            tickQueue.Dequeue();
+
         tickQueue.Enqueue(inputTick);
         lastTickQueue = inputTick.tick;
-
-        Debug.Log(tickQueue.Count);
     }
 
    

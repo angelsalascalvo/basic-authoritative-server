@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +31,7 @@ public class ValidatePhysic : MonoBehaviour{
     public void saveInputTicksBuffer(int tick, byte displacement, bool jump) {
         InputTick input;
         input.tick = tick;
-        input.displacement = displacement;
+        input.displacement = (EnumDisplacement)Enum.ToObject(typeof(EnumDisplacement), displacement);
         input.jump = jump;
         bufferInputTicks[getIndex(tick)] = input;
     }

@@ -1,5 +1,5 @@
 ﻿public struct InputTick {
     public int tick;
-    public byte displacement;
+    public EnumDisplacement displacement;
     public bool jump;
 }

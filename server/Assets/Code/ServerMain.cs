@@ -115,14 +115,10 @@ public class ServerMain : MonoBehaviour{
                         //aun no haya recibido el acuse de recibo de un tick ejecutado en el servidor, o incluso que 
                         //este mensaje se haya perdido en la comunicacion
                         if (tick > client.GetLastTickQueue()) {
-                            
                             InputTick inputTick;
                             inputTick.tick = tick;
                             inputTick.displacement = (EnumDisplacement) Enum.ToObject(typeof(EnumDisplacement), displacement);
                             inputTick.jump = jump;
-                            if (client.GetTickQueue().Count > 5) {
-                                client.GetTickQueue().Clear();
-                            }
                             client.AddInputTick(inputTick);
                         }
                     }
