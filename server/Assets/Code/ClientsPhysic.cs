@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Net;
+using System.IO;
 
 /**
  * FUNCIONALIDAD DEL SCRIPT
@@ -12,14 +13,7 @@ public class ClientsPhysic : MonoBehaviour {
     public ServerMain serverMain;
     public GameObject prefabPlayer;
 
-    // 🎲 Simulacion perdida de datagramas
-    [Header("Lost Datagram Simulate")]
-    public Slider sliderLostDatagram;
-    public Text textLostDatagram;
-    // 🎲 Simulacion latencia
-    [Header("Latency Simulate")]
-    public Slider sliderLatency;
-    public Text textLatency;
+    
 
     private float timer;
 
@@ -45,10 +39,7 @@ public class ClientsPhysic : MonoBehaviour {
     //------------------------------------------------------------------------------------------------
 
     private void Update() {
-        // 🎲 Simulacion perdida de datagramas
-        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
-        //🎲 Simulacion de latencia
-        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+
 
 
         //FISICA
@@ -64,7 +55,7 @@ public class ClientsPhysic : MonoBehaviour {
                     Rigidbody2D rb = clientList[i].GetGameObject().GetComponent<Rigidbody2D>();
 
                     if (clientList[i].GetTickQueue().Count > 0) {
-                       
+
                         InputTick inputTick = clientList[i].GetTickQueue().Dequeue();
 
                         switch (inputTick.displacement) {
@@ -95,54 +86,45 @@ public class ClientsPhysic : MonoBehaviour {
 
 
             //Enviar estado
-            /*
-            for (int i = 0; i < clientList.Count; i++) {
+            SendStatus(clientList);
+        }
+    }
 
-                if (clientList[i].GetLastTickExecuted() != -1) {
-                    Debug.Log("Enviado " + clientList[i].GetLastTickExecuted());
-                    //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
-                    if (StaticMethods.percent((short)sliderLostDatagram.value)) {
-                        Debug.LogWarning("Paquete perdido");
-                    } else {
-                        //🎲 Simulacion de latencia
-                        StartCoroutine(sendToClientSimulateLatency(clientList[i].GetAddress(), clientList[i].GetLastTickExecuted(), clientList[i].GetGameObject().transform.position));
-                    }
-                }
+
+    public void SendStatus(List<Client> clientList) {
+
+        byte[] dataAux = new byte[508];
+        BinaryWriter bw = new BinaryWriter(new MemoryStream(dataAux));
+
+        byte length = 0;
+        for (int i = 0; i < clientList.Count; i++) {
+            GameObject gameObject = clientList[i].GetGameObject();
+            if (clientList[i].GetGameObject() != null) {
+                length++;
+                //Datos
+                bw.Write(clientList[i].GetId()); // 4 bytes
+                bw.Write(gameObject.transform.position.x); //4 bytes
+                bw.Write(gameObject.transform.position.y); //4 bytes
             }
-            */
         }
+        bw.Close();
 
 
-        
+        byte[] dataSend = new byte[508];
+        bw = new BinaryWriter(new MemoryStream(dataSend));
+        bw.Write((byte)3); //ActionCode 3
 
-        
+        bw.Write(length);
+        //Volcar las posiciones en el array de datos
+        bw.Write(dataAux, 0, length * 12);
+        bw.Close();
 
-    }
 
-
-
-    public void move(Client client, int tick, byte displacement, bool jump) {
-
-        //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
-        if (StaticMethods.percent((short)sliderLostDatagram.value)) {
-            Debug.LogWarning("Paquete perdido");
-        } else {
-            //🎲 Simulacion de latencia
-            StartCoroutine(sendToClientSimulateLatency(client.GetAddress(), tick, client.GetGameObject().transform.position));
+        //Enviar a todos los clientes
+        for (int i = 0; i < clientList.Count; i++) {
+            serverMain.SendToClientSimulate(dataSend, clientList[i].GetAddress());
         }
 
     }
-
-
-    //---------------------------------------------------------------
-
-    /**
-     * 🎲 Simulacion de latencia
-     * Corrutina que espera X segundos antes de enviar los datos al servidor 
-     */
-    IEnumerator sendToClientSimulateLatency(IPEndPoint clientAddress, int tickExecuted, Vector2 position) {
-        yield return new WaitForSeconds(sliderLatency.value / 1000);
-        serverMain.sendStatusToClient(clientAddress, tickExecuted, position);
-    }
-
+    
 }

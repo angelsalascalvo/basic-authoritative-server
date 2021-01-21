@@ -78,14 +78,18 @@ public class ConnectServer : MonoBehaviour{
 
                     }
                     break;
-                //Mensaje de estado
+                //Mensaje de posiciones
                 case 3:
 
-                    lastTickServer = br.ReadInt32();
-                    Debug.Log(lastTickServer);
-                    Vector2 positionServer = new Vector2(br.ReadSingle(), br.ReadSingle());
-                    //validatePhysic.validate(lastTickServer, positionServer);
-                                  
+                    byte length = br.ReadByte();
+                    for (int i = 0; i < length; i++) {
+
+                        int id = br.ReadInt32();
+                        float x = br.ReadSingle();
+                        float y = br.ReadSingle();
+
+                        Debug.Log("Usuario" + id + ": x -> " + x + " | y -> " + y);
+                    }                                  
                     break;
             }
         }

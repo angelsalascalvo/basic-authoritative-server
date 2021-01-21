@@ -588,6 +588,10 @@ MonoBehaviour:
   - {fileID: 1210549150}
   - {fileID: 378174038}
   - {fileID: 122199880}
+  sliderLostDatagram: {fileID: 549057572}
+  textLostDatagram: {fileID: 994006743}
+  sliderLatency: {fileID: 1142968843}
+  textLatency: {fileID: 1843837601}
 --- !u!4 &863579845
 Transform:
   m_ObjectHideFlags: 0
@@ -617,10 +621,6 @@ MonoBehaviour:
   serverMain: {fileID: 863579844}
   prefabPlayer: {fileID: 4402895219903908821, guid: bb5b680ee11bab146bfbf692df3ac8ff,
     type: 3}
-  sliderLostDatagram: {fileID: 549057572}
-  textLostDatagram: {fileID: 994006743}
-  sliderLatency: {fileID: 1142968843}
-  textLatency: {fileID: 1843837601}
 --- !u!1 &994006741
 GameObject:
   m_ObjectHideFlags: 0

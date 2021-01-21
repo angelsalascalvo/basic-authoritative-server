@@ -22,6 +22,15 @@ public class ServerMain : MonoBehaviour{
     public short maxClients = 2;
     public List<Transform> instantiationPoints = new List<Transform>();
 
+    // 🎲 Simulacion perdida de datagramas
+    [Header("Lost Datagram Simulate")]
+    public Slider sliderLostDatagram;
+    public Text textLostDatagram;
+    // 🎲 Simulacion latencia
+    [Header("Latency Simulate")]
+    public Slider sliderLatency;
+    public Text textLatency;
+
     /// VAR PRI
     private List<Client> clientList = new List<Client>();
 
@@ -79,7 +88,7 @@ public class ServerMain : MonoBehaviour{
                         //Agregar cliente al listado
                         Client newClient = new Client(clientList.Count + 1, clientAddress);
                         clientList.Add(newClient);
-
+                        bw.Write(newClient.GetId()); //Id del cliente
                         //Instanciar
                         UnityMainThreadDispatcher.Instance().Enqueue(() =>
                             clientsPhysic.instantiate(newClient, instantiationPoints[clientList.Count - 1].position)
@@ -127,24 +136,49 @@ public class ServerMain : MonoBehaviour{
             }
         }
     }
+    
 
     //------------------------------------------------------------------------
 
-    /**
-     * METODO ENVIAR MENSAJE DE ESTADO AL CLIENTE
-       */
-    public void sendStatusToClient(IPEndPoint clientAddress, int tick, Vector2 position) {
-        byte[] dataSend = new byte[508];
-        BinaryWriter bw = new BinaryWriter(new MemoryStream(dataSend));
-        bw.Write((byte)3); //ActionCode 3
-        //Datos
-        bw.Write(tick);
-        bw.Write(position.x);
-        bw.Write(position.y);
-
-        //Enviar datos
-        serverSocket.SendTo(dataSend, clientAddress);
+    private void Update() {
+        // 🎲 Simulacion perdida de datagramas
+        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
+        //🎲 Simulacion de latencia
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
     }
+
+    //---------------------------------------------------------------
+
+    /**
+    * 🎲 Simulacion de latencia + perdida de paquetes
+    * Corrutina que espera X segundos antes de enviar los datos al servidor 
+    */
+    public void SendToClientSimulate(byte[] data, IPEndPoint clientAddress) {
+        if (StaticMethods.percent((short)sliderLostDatagram.value)) {
+            Debug.LogWarning("Paquete perdido");
+        } else {
+            //🎲 Simulacion de latencia
+            StartCoroutine(CorrutineSimulateLatency(data, clientAddress));
+        }
+    }
+    IEnumerator CorrutineSimulateLatency(byte[]data, IPEndPoint clientAddress) {    
+        //🎲 Simulacion de latencia
+        yield return new WaitForSeconds(sliderLatency.value / 1000);
+        SendToClient(data, clientAddress);
+    }
+
+
+
+    /**
+     * METODO ENVIAR MENSAJE AL CLIENTE
+       */
+    public void SendToClient(byte[] data, IPEndPoint clientAddress) {
+        serverSocket.SendTo(data, clientAddress);
+    }
+
+
+
+
 
     /// <summary>
     /// Obtener un cliente del listado por su direccion IP
