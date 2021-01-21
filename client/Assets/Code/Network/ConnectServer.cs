@@ -26,7 +26,7 @@ public class ConnectServer : MonoBehaviour{
     private IPEndPoint serverAddress;
     private bool connect = false;
     public int lastTickServer = 0;
-
+    private int myID=-1;
 
     ///////////////////////////////////////////////////////////////////////////////////////
     //                                      METODOS                                      //
@@ -75,7 +75,7 @@ public class ConnectServer : MonoBehaviour{
                     if (br.ReadBoolean()) {
                         Debug.Log("Admitido en partida");
                         connect = true;
-
+                        myID = br.ReadInt32();
                     }
                     break;
                 //Mensaje de posiciones
@@ -88,6 +88,11 @@ public class ConnectServer : MonoBehaviour{
                         float x = br.ReadSingle();
                         float y = br.ReadSingle();
 
+                        if (id != myID) {
+                            //Jugador Rival
+                            validatePhysic.MoveRivalPlayer(id, new Vector2(x, y));
+                        }
+                               
                         Debug.Log("Usuario" + id + ": x -> " + x + " | y -> " + y);
                     }                                  
                     break;

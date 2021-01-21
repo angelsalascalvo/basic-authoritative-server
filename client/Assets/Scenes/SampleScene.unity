@@ -706,6 +706,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1064072759}
   movementController: {fileID: 1064072764}
+  prefabRivalPlayer: {fileID: 1035511969633533243, guid: 29f419fe48c42bc44b6923675bfd8303,
+    type: 3}
 --- !u!1 &930135154
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,7 +985,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1064072759}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.292, y: -1.725, z: 0}
+  m_LocalPosition: {x: -6.88, y: 0, z: 0}
   m_LocalScale: {x: 85.511116, y: 148.66267, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

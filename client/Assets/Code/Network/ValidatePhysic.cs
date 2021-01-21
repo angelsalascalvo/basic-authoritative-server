@@ -10,13 +10,17 @@ public class ValidatePhysic : MonoBehaviour{
 
     public GameObject player;
     public MovementController movementController;
-
+    public GameObject prefabRivalPlayer;
 
     private static short size = 1024;
     private Vector2[] bufferPosition;
     private InputTick[] bufferInputTicks;
 
     private short correction = 0;
+
+
+    private List<RivalPlayer> rivalsList = new List<RivalPlayer>();
+    private int myID=-1;
 
     private void Start() {
         bufferPosition = new Vector2[size];
@@ -87,6 +91,38 @@ public class ValidatePhysic : MonoBehaviour{
         }
     }
 
+
+    public void MoveRivalPlayer(int id, Vector2 position) {
+        //Comprobar si esta instanciado
+        bool instantiated = false;
+        for (int i = 0; i < rivalsList.Count; i++) {
+            if (rivalsList[i].GetId() == id){
+                instantiated = true;
+                //Mover
+                if (rivalsList[i].GetGameObject() != null) {
+                    GameObject g = rivalsList[i].GetGameObject();
+                    UnityMainThreadDispatcher.Instance().Enqueue(() => g.transform.position = position);
+                }
+            }
+        }
+
+        //No esta instanciado
+        if (!instantiated) {
+            RivalPlayer rivalPlayer = new RivalPlayer(id);
+            rivalsList.Add(rivalPlayer);
+            UnityMainThreadDispatcher.Instance().Enqueue(() => CreateNewRival(rivalsList, id , position));
+        }
+    
+    }
+    private void CreateNewRival(List<RivalPlayer> rivalsList, int id, Vector2 position) {
+
+        for (int i = 0; i < rivalsList.Count; i++) {
+            if (rivalsList[i].GetId() == id) {
+                rivalsList[i].SetGameObject(Instantiate(prefabRivalPlayer, position, Quaternion.identity));
+            }
+        }
+    }
+
     //----------------------------------------------------------------------------
 
     /**
@@ -95,5 +131,11 @@ public class ValidatePhysic : MonoBehaviour{
      */
     public static int getIndex(int tick) {
         return tick % size;
+    }
+
+
+
+    public void SetMyID(int id) { 
+        myID = id;
     }
 }
