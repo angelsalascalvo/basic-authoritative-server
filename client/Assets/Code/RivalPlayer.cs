@@ -8,6 +8,7 @@ using UnityEngine;
 public class RivalPlayer {
     private int id;
     private GameObject gameObject;
+    private Rigidbody2D rb;
 
     public RivalPlayer(int id) {
         this.id = id;
@@ -20,6 +21,7 @@ public class RivalPlayer {
 
     public void SetGameObject(GameObject gameObject) {
         this.gameObject = gameObject;
+        this.rb = gameObject.GetComponent<Rigidbody2D>();
     }
 
     public int GetId() {
@@ -28,6 +30,10 @@ public class RivalPlayer {
 
     public GameObject GetGameObject() {
         return gameObject;
+    }
+
+    public Rigidbody2D GetRigidbody2D() {
+        return rb;
     }
 
 }

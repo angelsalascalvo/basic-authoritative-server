@@ -85,15 +85,15 @@ public class ConnectServer : MonoBehaviour{
                     for (int i = 0; i < length; i++) {
 
                         int id = br.ReadInt32();
-                        float x = br.ReadSingle();
-                        float y = br.ReadSingle();
+                        float posX = br.ReadSingle();
+                        float posY = br.ReadSingle();
+                        float velX = br.ReadSingle();
+                        float velY = br.ReadSingle();
 
                         if (id != myID) {
                             //Jugador Rival
-                            validatePhysic.MoveRivalPlayer(id, new Vector2(x, y));
+                            validatePhysic.ProcessStatusRival(id, new Vector2(posX, posY), new Vector2(velX, velY));
                         }
-                               
-                        Debug.Log("Usuario" + id + ": x -> " + x + " | y -> " + y);
                     }                                  
                     break;
             }

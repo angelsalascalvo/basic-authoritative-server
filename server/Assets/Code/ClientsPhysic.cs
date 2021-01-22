@@ -32,7 +32,7 @@ public class ClientsPhysic : MonoBehaviour {
 
 
     private void Start() {
-        Time.fixedDeltaTime = (0.02f);
+        Time.fixedDeltaTime = 0.02f;
         Debug.Log(Time.fixedDeltaTime);
     }
 
@@ -77,7 +77,7 @@ public class ClientsPhysic : MonoBehaviour {
                         clientList[i].SetLastTickExecuted(inputTick.tick);
 
                     } else {
-                        rb.velocity = new Vector2(0, rb.velocity.y);
+                        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
                     }
                 }
             }
@@ -105,6 +105,8 @@ public class ClientsPhysic : MonoBehaviour {
                 bw.Write(clientList[i].GetId()); // 4 bytes
                 bw.Write(gameObject.transform.position.x); //4 bytes
                 bw.Write(gameObject.transform.position.y); //4 bytes
+                bw.Write(gameObject.GetComponent<Rigidbody2D>().velocity.x); //4 bytes
+                bw.Write(gameObject.GetComponent<Rigidbody2D>().velocity.y); //4 bytes
             }
         }
         bw.Close();
@@ -116,7 +118,7 @@ public class ClientsPhysic : MonoBehaviour {
 
         bw.Write(length);
         //Volcar las posiciones en el array de datos
-        bw.Write(dataAux, 0, length * 12);
+        bw.Write(dataAux, 0, length * 20); //20 bytes por usuario
         bw.Close();
 
 

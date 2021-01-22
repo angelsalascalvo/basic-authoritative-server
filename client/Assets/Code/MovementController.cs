@@ -41,6 +41,7 @@ public class MovementController : MonoBehaviour{
      * INICIALIZACION
      */
     void Start(){
+        Time.fixedDeltaTime = 0.02f;
         rb = GetComponent<Rigidbody2D>();
         tickQueue = new Queue<InputTick>();
         Debug.Log(Time.fixedDeltaTime);

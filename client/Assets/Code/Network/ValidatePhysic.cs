@@ -92,16 +92,34 @@ public class ValidatePhysic : MonoBehaviour{
     }
 
 
-    public void MoveRivalPlayer(int id, Vector2 position) {
+    private void Update() {
+        for (int i = 0; i < rivalsList.Count; i++) {
+            if (rivalsList[i].GetGameObject() != null) {
+                
+            }
+        }
+    }
+
+
+    public void ProcessStatusRival(int id, Vector2 position, Vector2 velocity) {
         //Comprobar si esta instanciado
         bool instantiated = false;
         for (int i = 0; i < rivalsList.Count; i++) {
             if (rivalsList[i].GetId() == id){
                 instantiated = true;
-                //Mover
-                if (rivalsList[i].GetGameObject() != null) {
-                    GameObject g = rivalsList[i].GetGameObject();
-                    UnityMainThreadDispatcher.Instance().Enqueue(() => g.transform.position = position);
+                
+                GameObject gameObject = rivalsList[i].GetGameObject();
+                Rigidbody2D rb = rivalsList[i].GetRigidbody2D();
+
+                if (gameObject != null) {
+                    //Establecer velocidad de movimiento
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        MoveRivalPlayer(rb, velocity)
+                    );
+                    //Aplicar correcciones de posicion
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        CorrectRivalPlayer(gameObject, rb, position)
+                    );
                 }
             }
         }
@@ -110,18 +128,38 @@ public class ValidatePhysic : MonoBehaviour{
         if (!instantiated) {
             RivalPlayer rivalPlayer = new RivalPlayer(id);
             rivalsList.Add(rivalPlayer);
-            UnityMainThreadDispatcher.Instance().Enqueue(() => CreateNewRival(rivalsList, id , position));
+            UnityMainThreadDispatcher.Instance().Enqueue(() => 
+                rivalPlayer.SetGameObject(Instantiate(prefabRivalPlayer, position, Quaternion.identity))
+            );
         }
     
     }
-    private void CreateNewRival(List<RivalPlayer> rivalsList, int id, Vector2 position) {
 
-        for (int i = 0; i < rivalsList.Count; i++) {
-            if (rivalsList[i].GetId() == id) {
-                rivalsList[i].SetGameObject(Instantiate(prefabRivalPlayer, position, Quaternion.identity));
-            }
+
+    public void CorrectRivalPlayer(GameObject gameObject, Rigidbody2D rb, Vector2 serverPosition) {
+
+        Vector2 diff = (Vector2)gameObject.transform.position - serverPosition;
+
+        Debug.Log("local:" + (Vector2)gameObject.transform.position + " server: " + serverPosition + " (" + diff + ")");
+
+        if ((Mathf.Abs(diff.x) > 0.07f || Mathf.Abs(diff.y) > 0.07f)) {
+            Debug.Log("correccion");
+            rb.position = serverPosition;
         }
     }
+
+    public void MoveRivalPlayer(Rigidbody2D rb, Vector2 velocity) {
+
+        //Si no se aplica velocidad en el eje y dejamos caer el cuerpo rigido con la gravedad local para evitar cortes
+        if (velocity.y == 0) {
+            rb.velocity = new Vector2(velocity.x, rb.velocity.y);
+        } else {
+            rb.velocity = velocity;
+        }
+        
+    }
+
+
 
     //----------------------------------------------------------------------------
 

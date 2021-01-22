@@ -13,8 +13,6 @@ using UnityEngine.UI;
 */
 public class ServerMain : MonoBehaviour{
 
-
-    public string ipServer;
     public int portServer;
     public ClientsPhysic clientsPhysic;
 
@@ -42,10 +40,9 @@ public class ServerMain : MonoBehaviour{
     * INICIALIZACION
     */
     void Start() {
-
         //1. Crear Socket
         serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        serverAddress = new IPEndPoint(IPAddress.Parse(ipServer), portServer);
+        serverAddress = new IPEndPoint(IPAddress.Any, portServer); //Abrir socket con la ip local
         serverSocket.Bind(serverAddress);
 
         //2. Iniciar hilo de escucha
