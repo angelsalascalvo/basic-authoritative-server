@@ -2,12 +2,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /**
  * FUNCIONALIDAD DEL SCRIPT
  */
-public class ValidatePhysic : MonoBehaviour{
+public class ValidatePhysic : MonoBehaviour {
 
+    public Text diffCount;
+
+    private Rigidbody2D rb2D;
     public GameObject player;
     public MovementController movementController;
     public GameObject prefabRivalPlayer;
@@ -20,9 +24,13 @@ public class ValidatePhysic : MonoBehaviour{
 
 
     private List<RivalPlayer> rivalsList = new List<RivalPlayer>();
-    private int myID=-1;
+    private int myID = -1;
 
+    public float diff;
+
+    private float t = 0, target;
     private void Start() {
+        rb2D = player.GetComponent<Rigidbody2D>();
         bufferPosition = new Vector2[size];
         bufferInputTicks = new InputTick[size];
     }
@@ -46,7 +54,7 @@ public class ValidatePhysic : MonoBehaviour{
      * Obtener entradas ejecutadas para un determinado tick
      */
     public InputTick readInputTicksBuffer(int tick) {
-       return bufferInputTicks[getIndex(tick)];
+        return bufferInputTicks[getIndex(tick)];
     }
 
 
@@ -79,7 +87,7 @@ public class ValidatePhysic : MonoBehaviour{
 
             UnityMainThreadDispatcher.Instance().Enqueue(() => movementController.correctionPosition(targetPosition));
 
-               
+
             /*
             //Las posiciones en servidor y cliente no coinciden
             if (movementController.getPosition() - targetPosition) {
@@ -92,33 +100,25 @@ public class ValidatePhysic : MonoBehaviour{
     }
 
 
-    private void Update() {
-        for (int i = 0; i < rivalsList.Count; i++) {
-            if (rivalsList[i].GetGameObject() != null) {
-                
-            }
-        }
-    }
+    
 
 
     public void ProcessStatusRival(int id, Vector2 position, Vector2 velocity) {
         //Comprobar si esta instanciado
         bool instantiated = false;
         for (int i = 0; i < rivalsList.Count; i++) {
-            if (rivalsList[i].GetId() == id){
+            if (rivalsList[i].GetId() == id) {
                 instantiated = true;
-                
+
                 GameObject gameObject = rivalsList[i].GetGameObject();
                 Rigidbody2D rb = rivalsList[i].GetRigidbody2D();
 
                 if (gameObject != null) {
                     //Establecer velocidad de movimiento
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        MoveRivalPlayer(rb, velocity)
-                    );
+
                     //Aplicar correcciones de posicion
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        CorrectRivalPlayer(gameObject, rb, position)
+                        CorrectRivalPlayer(gameObject, position)
                     );
                 }
             }
@@ -128,24 +128,46 @@ public class ValidatePhysic : MonoBehaviour{
         if (!instantiated) {
             RivalPlayer rivalPlayer = new RivalPlayer(id);
             rivalsList.Add(rivalPlayer);
-            UnityMainThreadDispatcher.Instance().Enqueue(() => 
+            UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 rivalPlayer.SetGameObject(Instantiate(prefabRivalPlayer, position, Quaternion.identity))
             );
         }
-    
+
     }
 
 
-    public void CorrectRivalPlayer(GameObject gameObject, Rigidbody2D rb, Vector2 serverPosition) {
+    private void Update() {
+
+    }
+
+    public void CorrectPlayer(int tick, Vector2 serverPosition){
+        //Debug.Log(bufferPosition[getIndex(tick)].x + " : " + serverPosition.x +" |=> "+ Mathf.Abs(bufferPosition[getIndex(tick)].x - serverPosition.x));
+        diff = (bufferPosition[getIndex(tick)].x - serverPosition.x);
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+            diffCount.text =  "Diferencia: x => "+ (bufferPosition[getIndex(tick)].x - serverPosition.x)
+        );
+
+        //Corrección grande
+        if (Mathf.Abs(bufferPosition[getIndex(tick)].x - serverPosition.x) > 4 || (Mathf.Abs(bufferPosition[getIndex(tick)].y - serverPosition.y) > 3 )) {
+            UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                player.transform.position = serverPosition
+            );
+        }
+        
+
+    }
+
+
+    public void CorrectRivalPlayer(GameObject gameObject, Vector2 serverPosition) {
 
         Vector2 diff = (Vector2)gameObject.transform.position - serverPosition;
 
         Debug.Log("local:" + (Vector2)gameObject.transform.position + " server: " + serverPosition + " (" + diff + ")");
 
-        if ((Mathf.Abs(diff.x) > 0.07f || Mathf.Abs(diff.y) > 0.07f)) {
-            Debug.Log("correccion");
-            rb.position = serverPosition;
-        }
+      // if ((Mathf.Abs(diff.x) > 0.07f || Mathf.Abs(diff.y) > 0.07f)) {
+        //    Debug.Log("correccion");
+            gameObject.transform.position = serverPosition;
+        //}
     }
 
     public void MoveRivalPlayer(Rigidbody2D rb, Vector2 velocity) {

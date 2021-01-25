@@ -10,7 +10,7 @@ public class Client {
     private int id;
     private IPEndPoint address;
     private GameObject gameObject;
-    private int lastTickExecuted;
+    private InputTick lastTickExecuted;
     private int lastTickQueue;
     private Queue<InputTick> tickQueue;
    
@@ -20,7 +20,11 @@ public class Client {
         this.address = address;
         tickQueue = new Queue<InputTick>();
         lastTickQueue = -1;
-        lastTickExecuted = -1;
+
+        //Por defecto
+        lastTickExecuted.tick = -1;
+        lastTickExecuted.jump = false;
+        lastTickExecuted.displacement = EnumDisplacement.None;
     }
 
     //---------------------------------------------------
@@ -43,7 +47,7 @@ public class Client {
         return tickQueue;
     }
 
-    public int GetLastTickExecuted() {
+    public InputTick GetLastTickExecuted() {
         return lastTickExecuted;
     }
     public int GetLastTickQueue() { 
@@ -54,7 +58,7 @@ public class Client {
         this.gameObject = gameObject;
     }
 
-    public void SetLastTickExecuted(int lastTickExecuted) {
+    public void SetLastTickExecuted(InputTick lastTickExecuted) {
         this.lastTickExecuted = lastTickExecuted;
     }
     //--------------------------------------------------

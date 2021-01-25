@@ -85,6 +85,7 @@ public class ConnectServer : MonoBehaviour{
                     for (int i = 0; i < length; i++) {
 
                         int id = br.ReadInt32();
+                        int tick = br.ReadInt32();
                         float posX = br.ReadSingle();
                         float posY = br.ReadSingle();
                         float velX = br.ReadSingle();
@@ -93,6 +94,8 @@ public class ConnectServer : MonoBehaviour{
                         if (id != myID) {
                             //Jugador Rival
                             validatePhysic.ProcessStatusRival(id, new Vector2(posX, posY), new Vector2(velX, velY));
+                        } else {
+                            validatePhysic.CorrectPlayer(tick, new Vector2(posX, posY));
                         }
                     }                                  
                     break;

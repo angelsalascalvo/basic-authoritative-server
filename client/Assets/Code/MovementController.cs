@@ -50,6 +50,14 @@ public class MovementController : MonoBehaviour{
     //---------------------------------------------------------------
 
     void Update() {
+
+        if (Input.GetKey("z")) {
+            displacement = EnumDisplacement.Left;
+        } else if (Input.GetKey("x")) {
+            displacement = EnumDisplacement.Right;
+        } else {
+            displacement = EnumDisplacement.None;
+        }
         timer += Time.deltaTime;
 
         while (timer >= Time.fixedDeltaTime) {
@@ -69,10 +77,21 @@ public class MovementController : MonoBehaviour{
                 validatePhysic.saveInputTicksBuffer(tick, (byte)displacement, jump);
                 switch (displacement) {
                     case EnumDisplacement.Left:
-                        rb.velocity = new Vector2(-3f, rb.velocity.y);
+                        //Variamos la velocidad para corregir distancia de diferencia entre cliente y servidor
+                        if (validatePhysic.diff > 0.02f) {
+                            Debug.Log("CORRER MAS <-");
+                            rb.velocity = new Vector2(-3.5f, rb.velocity.y);
+                        } else {
+                            rb.velocity = new Vector2(-3f, rb.velocity.y);
+                        }
                         break;
                     case EnumDisplacement.Right:
-                        rb.velocity = new Vector2(3f, rb.velocity.y);
+                        if (validatePhysic.diff < -0.02f) {
+                            Debug.Log("CORRER MAS ->");
+                            rb.velocity = new Vector2(3.5f, rb.velocity.y);
+                        } else {
+                            rb.velocity = new Vector2(3f, rb.velocity.y);
+                        }
                         break;
                     case EnumDisplacement.None:
                         rb.velocity = new Vector2(0, rb.velocity.y);

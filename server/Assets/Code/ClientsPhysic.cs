@@ -53,31 +53,37 @@ public class ClientsPhysic : MonoBehaviour {
             for (int i = 0; i < clientList.Count; i++) {
                 if (clientList[i].GetGameObject() != null) {
                     Rigidbody2D rb = clientList[i].GetGameObject().GetComponent<Rigidbody2D>();
+                    EnumDisplacement displacement;
+                    bool jump;
 
                     if (clientList[i].GetTickQueue().Count > 0) {
 
                         InputTick inputTick = clientList[i].GetTickQueue().Dequeue();
-
-                        switch (inputTick.displacement) {
-                            case EnumDisplacement.Left:
-                                rb.velocity = new Vector2(-3f, rb.velocity.y);
-                                break;
-                            case EnumDisplacement.Right:
-                                rb.velocity = new Vector2(3f, rb.velocity.y);
-                                break;
-                            case EnumDisplacement.None:
-                                rb.velocity = new Vector2(0, rb.velocity.y);
-                                break;
-                        }
-
-                        if (inputTick.jump) {
-                            rb.velocity = new Vector2(rb.velocity.x, 5f);
-                        }
-
-                        clientList[i].SetLastTickExecuted(inputTick.tick);
+                        clientList[i].SetLastTickExecuted(inputTick);
+                        displacement = inputTick.displacement;
+                        jump = inputTick.jump;
 
                     } else {
-                        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+                        jump = clientList[i].GetLastTickExecuted().jump;
+                        displacement = clientList[i].GetLastTickExecuted().displacement;
+                    }
+
+
+
+                    switch (displacement) {
+                        case EnumDisplacement.Left:
+                            rb.velocity = new Vector2(-3f, rb.velocity.y);
+                            break;
+                        case EnumDisplacement.Right:
+                            rb.velocity = new Vector2(3f, rb.velocity.y);
+                            break;
+                        case EnumDisplacement.None:
+                            rb.velocity = new Vector2(0, rb.velocity.y);
+                            break;
+                    }
+
+                    if (jump) {
+                        rb.velocity = new Vector2(rb.velocity.x, 5f);
                     }
                 }
             }
@@ -99,10 +105,12 @@ public class ClientsPhysic : MonoBehaviour {
         byte length = 0;
         for (int i = 0; i < clientList.Count; i++) {
             GameObject gameObject = clientList[i].GetGameObject();
-            if (clientList[i].GetGameObject() != null) {
+            //Esperar a que se ejecute algun tick
+            if (clientList[i].GetLastTickExecuted().tick>-1) {
                 length++;
                 //Datos
                 bw.Write(clientList[i].GetId()); // 4 bytes
+                bw.Write(clientList[i].GetLastTickExecuted().tick); //4 bytes
                 bw.Write(gameObject.transform.position.x); //4 bytes
                 bw.Write(gameObject.transform.position.y); //4 bytes
                 bw.Write(gameObject.GetComponent<Rigidbody2D>().velocity.x); //4 bytes
@@ -118,7 +126,7 @@ public class ClientsPhysic : MonoBehaviour {
 
         bw.Write(length);
         //Volcar las posiciones en el array de datos
-        bw.Write(dataAux, 0, length * 20); //20 bytes por usuario
+        bw.Write(dataAux, 0, length * 24); //24 bytes por usuario
         bw.Close();
 
 
