@@ -50,14 +50,14 @@ public class MovementController : MonoBehaviour{
     //---------------------------------------------------------------
 
     void Update() {
-
+        /*
         if (Input.GetKey("z")) {
             displacement = EnumDisplacement.Left;
         } else if (Input.GetKey("x")) {
             displacement = EnumDisplacement.Right;
         } else {
             displacement = EnumDisplacement.None;
-        }
+        }*/
         timer += Time.deltaTime;
 
         while (timer >= Time.fixedDeltaTime) {

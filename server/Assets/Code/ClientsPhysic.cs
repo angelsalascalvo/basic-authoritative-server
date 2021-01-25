@@ -17,7 +17,6 @@ public class ClientsPhysic : MonoBehaviour {
 
     private float timer, timer2;
 
-
     private bool physicExecute=false;
 
     //------------------------------------------------------------------------------------------------
@@ -97,8 +96,8 @@ public class ClientsPhysic : MonoBehaviour {
 
 
         timer2 += Time.deltaTime;
-        while (timer2 >= 0.04f) {
-            timer2 -= 0.04f;
+        while (timer2 >= 0.02f) {
+            timer2 -= 0.02f;
             //Enviar estado
             SendStatus(clientList);
         }

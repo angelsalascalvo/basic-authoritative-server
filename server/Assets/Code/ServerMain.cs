@@ -35,6 +35,7 @@ public class ServerMain : MonoBehaviour{
     private Socket serverSocket;
     private IPEndPoint serverAddress, clientAddress;
     private Thread thListenClients;
+    private int lostDatagrams=0;
 
     /**
     * INICIALIZACION
@@ -142,6 +143,7 @@ public class ServerMain : MonoBehaviour{
         textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
         //🎲 Simulacion de latencia
         textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+
     }
 
     //---------------------------------------------------------------

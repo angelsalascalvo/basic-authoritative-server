@@ -115,14 +115,14 @@ public class ValidatePhysic : MonoBehaviour {
                 RivalPlayer rival = rivalsList[i];
                 if (gameObject != null) {
 
-                       
-
-                    if (rivalsList[i].GetPositionsQueue().Count > 5)
-                        rivalsList[i].GetPositionsQueue().Dequeue();
 
 
-                    rivalsList[i].GetPositionsQueue().Enqueue(position);
-                    Debug.Log(rivalsList[i].GetPositionsQueue().Count);
+
+                    rivalsList[i].SetTargetPosition(position);
+                        rival.SetTime(0);
+
+
+
 
                 }
             }
@@ -140,29 +140,15 @@ public class ValidatePhysic : MonoBehaviour {
     }
 
 
-    public void NewMovementRival(RivalPlayer rival, Vector2 position) {
-        rival.SetStartPosition(rival.GetGameObject().transform.position);
-        rival.SetTargetPosition(position);
-        rival.SetTime(0);
-    }
-
-
     private void Update() {
         for (int i = 0; i < rivalsList.Count; i++) {
             RivalPlayer rival = rivalsList[i];
 
-            if (rival.GetPositionsQueue().Count > 1) {
-                if ((Vector2)rival.GetGameObject().transform.position == rival.GetTargetPosition() || rival.GetTime()==-1) {
-                    rival.SetStartPosition(rival.GetGameObject().transform.position);
-                    Vector2 target = rival.GetPositionsQueue().Dequeue();
-                    rival.SetTargetPosition(target);
-                    rival.SetTime(0);
-
-                }
-                
-                rival.SetTime(rival.GetTime() + Time.deltaTime / 0.04f);
-                rival.GetGameObject().transform.position = Vector3.Lerp(rival.GetStartPosition(), rival.GetTargetPosition(), rival.GetTime());
+            if (rival.GetGameObject() != null) {
+                rival.SetTime(rival.GetTime() + Time.deltaTime / 0.02f);
+                rival.GetGameObject().transform.position = Vector3.Lerp(rival.GetGameObject().transform.position, rival.GetTargetPosition(), rival.GetTime());
             }
+            
         }
     }
 

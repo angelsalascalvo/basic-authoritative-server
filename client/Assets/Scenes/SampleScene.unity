@@ -688,7 +688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   quantityDatagramLost: 10
-  serverIp: 192.168.0.163
+  serverIp: 194.5.159.153
   serverPort: 1999
   validatePhysic: {fileID: 874428585}
   lastTickServer: 0

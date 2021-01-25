@@ -10,16 +10,13 @@ public class RivalPlayer {
     private int id;
     private GameObject gameObject;
     private Rigidbody2D rb;
-    private Queue<Vector2> positionsQueue;
-    private Vector2 startPosition, targetPosition;
+    private Vector2 targetPosition;
     private float time;
 
 
     public RivalPlayer(int id) {
         this.id = id;
         gameObject = null;
-        positionsQueue = new Queue<Vector2>();
-        time = -1;
     }
 
     public void SetId(int id) {
@@ -43,22 +40,12 @@ public class RivalPlayer {
         return rb;
     }
 
-    public Queue<Vector2> GetPositionsQueue() {
-        return positionsQueue;
-    }
-
-    public void SetStartPosition(Vector2 startPosition) {
-        this.startPosition = startPosition;
-    }
 
     public void SetTargetPosition(Vector2 targetPosition) {
         this.targetPosition = targetPosition;
     }
 
-    public Vector2 GetStartPosition() {
-        return startPosition;
-    }
-    
+
     public Vector2 GetTargetPosition() {
         return targetPosition;
     }
