@@ -112,14 +112,18 @@ public class ValidatePhysic : MonoBehaviour {
 
                 GameObject gameObject = rivalsList[i].GetGameObject();
                 Rigidbody2D rb = rivalsList[i].GetRigidbody2D();
-
+                RivalPlayer rival = rivalsList[i];
                 if (gameObject != null) {
-                    //Establecer velocidad de movimiento
 
-                    //Aplicar correcciones de posicion
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        CorrectRivalPlayer(gameObject, position)
-                    );
+                       
+
+                    if (rivalsList[i].GetPositionsQueue().Count > 5)
+                        rivalsList[i].GetPositionsQueue().Dequeue();
+
+
+                    rivalsList[i].GetPositionsQueue().Enqueue(position);
+                    Debug.Log(rivalsList[i].GetPositionsQueue().Count);
+
                 }
             }
         }
@@ -136,8 +140,30 @@ public class ValidatePhysic : MonoBehaviour {
     }
 
 
-    private void Update() {
+    public void NewMovementRival(RivalPlayer rival, Vector2 position) {
+        rival.SetStartPosition(rival.GetGameObject().transform.position);
+        rival.SetTargetPosition(position);
+        rival.SetTime(0);
+    }
 
+
+    private void Update() {
+        for (int i = 0; i < rivalsList.Count; i++) {
+            RivalPlayer rival = rivalsList[i];
+
+            if (rival.GetPositionsQueue().Count > 1) {
+                if ((Vector2)rival.GetGameObject().transform.position == rival.GetTargetPosition() || rival.GetTime()==-1) {
+                    rival.SetStartPosition(rival.GetGameObject().transform.position);
+                    Vector2 target = rival.GetPositionsQueue().Dequeue();
+                    rival.SetTargetPosition(target);
+                    rival.SetTime(0);
+
+                }
+                
+                rival.SetTime(rival.GetTime() + Time.deltaTime / 0.04f);
+                rival.GetGameObject().transform.position = Vector3.Lerp(rival.GetStartPosition(), rival.GetTargetPosition(), rival.GetTime());
+            }
+        }
     }
 
     public void CorrectPlayer(int tick, Vector2 serverPosition){
@@ -168,17 +194,6 @@ public class ValidatePhysic : MonoBehaviour {
         //    Debug.Log("correccion");
             gameObject.transform.position = serverPosition;
         //}
-    }
-
-    public void MoveRivalPlayer(Rigidbody2D rb, Vector2 velocity) {
-
-        //Si no se aplica velocidad en el eje y dejamos caer el cuerpo rigido con la gravedad local para evitar cortes
-        if (velocity.y == 0) {
-            rb.velocity = new Vector2(velocity.x, rb.velocity.y);
-        } else {
-            rb.velocity = velocity;
-        }
-        
     }
 
 

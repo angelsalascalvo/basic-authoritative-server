@@ -94,6 +94,7 @@ public class ConnectServer : MonoBehaviour{
                         if (id != myID) {
                             //Jugador Rival
                             validatePhysic.ProcessStatusRival(id, new Vector2(posX, posY), new Vector2(velX, velY));
+
                         } else {
                             validatePhysic.CorrectPlayer(tick, new Vector2(posX, posY));
                         }

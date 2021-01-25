@@ -15,7 +15,8 @@ public class ClientsPhysic : MonoBehaviour {
 
     
 
-    private float timer;
+    private float timer, timer2;
+
 
     private bool physicExecute=false;
 
@@ -91,13 +92,19 @@ public class ClientsPhysic : MonoBehaviour {
             Physics2D.Simulate(Time.fixedDeltaTime);
 
 
+            
+        }
+
+
+        timer2 += Time.deltaTime;
+        while (timer2 >= 0.04f) {
+            timer2 -= 0.04f;
             //Enviar estado
             SendStatus(clientList);
         }
     }
 
-
-    public void SendStatus(List<Client> clientList) {
+        public void SendStatus(List<Client> clientList) {
 
         byte[] dataAux = new byte[508];
         BinaryWriter bw = new BinaryWriter(new MemoryStream(dataAux));
