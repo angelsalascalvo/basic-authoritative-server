@@ -1,4 +1,4 @@
-# Servidor Autoritario + Clientes. Unity 2D
+# Servidor Autoritario + Cliente. Unity 2D
 
 Ejemplo de funcionamiento básico de movimiento de personajes para un videojuego multijugador online 2D con un servidor autoritario (Authoritative Server), los múltiples clientes envían sus entradas al servidor, este las procesa ejecutando su propia física y devuelve la posición de los diferentes jugadores a los clientes conectados. Toda esta comunicación se realiza a través de una comunicación <strong>UDP por socket</strong>.
 <br><br>
