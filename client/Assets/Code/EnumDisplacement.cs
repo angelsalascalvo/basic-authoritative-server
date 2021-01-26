@@ -1,10 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-/**
- * FUNCIONALIDAD DEL SCRIPT
- */
+﻿/// <summary>
+/// Enumeral con los posibles inputs de desplazamiento
+/// </summary>
 public enum EnumDisplacement{
     None, Left, Right
 }

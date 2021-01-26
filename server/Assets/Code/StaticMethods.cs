@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-/**
- * FUNCIONALIDAD DEL SCRIPT
- */
+/// <summary>
+/// Bateria de metodos estaticos para el debug y simulaciones de comportamientos de red reales 🎲
+/// </summary>
 public static class StaticMethods {
 
-    /**
-     * Imprimer en consola un datagrama (array de bytes)
-     */
-    public static void debugDatagram(byte[] rData) {
+    /// <summary>
+    /// Imprimer en consola un datagrama (array de bytes)
+    /// </summary>
+    /// <param name="rData"></param>
+    public static void DebugDatagram(byte[] rData) {
         string t = "";
         foreach (byte a in rData) {
             t += a + " - ";
@@ -19,22 +18,26 @@ public static class StaticMethods {
         Debug.Log(t);
     }
 
-    //-----------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    /**
-     * Devuelve true o false en funcion de un porcentaje
-     * 0% = false; 100% = true;
-     */
-    public static bool percent(short numPercent) {
+    /// <summary>
+    /// Devuelve true o false en funcion de un porcentaje
+    /// 0% = false; 100% = true;
+    /// </summary>
+    /// <param name="numPercent"></param>
+    /// <returns></returns>
+    public static bool Percent(short numPercent) {
         return RandomGenerator.GetRandomNumber() <= (numPercent / 100f);
     }
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////
 
-/**
- * Clase estatica para poder llamar al metodo de percent desde un hilo
- */
+
+/// <summary>
+/// Clase estatica para poder llamar al metodo de percent desde un hilo
+/// </summary>
 public static class RandomGenerator {
     private static object locker = new object();
     private static System.Random seedGenerator = new System.Random(Environment.TickCount);

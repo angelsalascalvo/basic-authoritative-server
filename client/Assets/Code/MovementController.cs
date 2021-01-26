@@ -4,15 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 
-/**
- * FUNCIONALIDAD DEL SCRIPT
- */
+/// <summary>
+/// Control del movimiento del personaje local
+/// </summary>
 public class MovementController : MonoBehaviour{
     
     //// REF PUB
-    public ConnectServer connectServer;
-    public ValidatePhysic validatePhysic;
-    
+    public ConnectionServer connectServer;
+    public CorrectionsPhysic correctionsPhysic;
     // 🎲 Simulacion latencia
     [Header("Latency Simulate")]
     public Slider sliderLatency;
@@ -26,69 +25,66 @@ public class MovementController : MonoBehaviour{
     private Rigidbody2D rb;
     private EnumDisplacement displacement = EnumDisplacement.None;
     private bool jump = false;
-
     private float timer;
     private int tick = 0;
-    private short limitsInputTicks = 80;
-
-
-    private static int limitTickQueueSize = 5;
     private Queue<InputTick> tickQueue;
+
+    //VAR STA
+    private static readonly int limitTickQueueSize = 5;
 
     //---------------------------------------------------------------
 
-    /**
-     * INICIALIZACION
-     */
+    /// <summary>
+    /// Inicializacion
+    /// </summary>
     void Start(){
-        Time.fixedDeltaTime = 0.02f;
+        Time.fixedDeltaTime = 0.02f; //Tickrate (1s / 0.02s = 50 ticks por segundo)
         rb = GetComponent<Rigidbody2D>();
         tickQueue = new Queue<InputTick>();
-        Debug.Log(Time.fixedDeltaTime);
     }
 
     //---------------------------------------------------------------
 
+    /// <summary>
+    /// Ejecucion cada fotograma
+    /// </summary>
     void Update() {
-        /*
-        if (Input.GetKey("z")) {
-            displacement = EnumDisplacement.Left;
-        } else if (Input.GetKey("x")) {
-            displacement = EnumDisplacement.Right;
-        } else {
-            displacement = EnumDisplacement.None;
-        }*/
-        timer += Time.deltaTime;
 
+        //🎲 Simulacion. Actualizar datos de la interfaz gráfica
+        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+
+        //Ejecucion cada tick (tickrate)
+        timer += Time.deltaTime;
         while (timer >= Time.fixedDeltaTime) {
             timer -= Time.fixedDeltaTime;
-            // Debug.Log("recibido:" + tick + " real:" + connectServer.getLastTickServer() + "desfase de: " + (tick - connectServer.getLastTickServer()));
-
-            //int gap = (tick - connectServer.getLastTickServer())-3;
-            //&& !StaticMethods.percent((short)Mathf.Clamp(gap,0,100))
-
-
-
             if (connectServer.isConnected() ){
+
+                //Crear datagrama para enviar al servidor
                 byte[] data = new byte[508];
                 BinaryWriter bw = new BinaryWriter(new MemoryStream(data));
-
                 bw.Write((byte)2); //ActionCode 2.
-                validatePhysic.saveInputTicksBuffer(tick, (byte)displacement, jump);
+
+                //Leer entradas y actuar
                 switch (displacement) {
                     case EnumDisplacement.Left:
-                        //Variamos la velocidad para corregir distancia de diferencia entre cliente y servidor
-                        if (validatePhysic.diff > 0.02f) {
-                            Debug.Log("CORRER MAS <-");
-                            rb.velocity = new Vector2(-3.5f, rb.velocity.y);
+                        //Segun la varacion del personaje local con el servidor,
+                        //aumentar o disminuir velocidad para realizar una correccion en esta variacion
+                        if (correctionsPhysic.GetDiff().x > 0.02f) {
+                            rb.velocity = new Vector2(-3.3f, rb.velocity.y);
+                        } else if(correctionsPhysic.GetDiff().x < -0.02f) {
+                            rb.velocity = new Vector2(-2.7f, rb.velocity.y);
                         } else {
                             rb.velocity = new Vector2(-3f, rb.velocity.y);
                         }
                         break;
                     case EnumDisplacement.Right:
-                        if (validatePhysic.diff < -0.02f) {
-                            Debug.Log("CORRER MAS ->");
-                            rb.velocity = new Vector2(3.5f, rb.velocity.y);
+                        //Segun la varacion del personaje local con el servidor,
+                        //aumentar o disminuir velocidad para realizar una correccion en esta variacion
+                        if (correctionsPhysic.GetDiff().x < -0.02f) {
+                            rb.velocity = new Vector2(3.3f, rb.velocity.y);
+                        } else if (correctionsPhysic.GetDiff().x > 0.02f) {
+                            rb.velocity = new Vector2(2.7f, rb.velocity.y);
                         } else {
                             rb.velocity = new Vector2(3f, rb.velocity.y);
                         }
@@ -102,44 +98,45 @@ public class MovementController : MonoBehaviour{
                     rb.velocity = new Vector2(rb.velocity.x, 5f);
                 }
 
+                //Almacenar tick en el cola
                 InputTick inputTick;
                 inputTick.tick = tick;
                 inputTick.displacement = displacement;
                 inputTick.jump = jump;
                 AddInputTick(inputTick);
               
-                //Escribir los datos a enviar
+                //Recorrer los inputs almacenados y enviar al servidor
+                //Envio de ticks duplicados para corregir posibles perdidas
+                //producidas en la comunicación.
                 bw.Write((short)tickQueue.Count);
                 foreach (InputTick it in tickQueue) {
                     bw.Write(it.tick);
                     bw.Write((byte)it.displacement);
                     bw.Write(it.jump);
                 }
+                //Enviar tick al servidor
+                SendToClientSimulate(data);
 
-                Physics2D.Simulate(Time.fixedDeltaTime); //¿Es realmente necesario simular fisica en cliente? Si no se simula podemos migrar código a Fixed update
+                //Ejecutar fisica
+                Physics2D.Simulate(Time.fixedDeltaTime);
 
-                //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
-                if (StaticMethods.percent((short)sliderLostDatagram.value)) {
-                    Debug.LogWarning("Paquete perdido");
-                } else {
-                    //🎲 Simulacion de latencia
-                    StartCoroutine(sendToServerSimulateLatency(data));
-                }
+                //Almacenar la posicion obtenida en local asociada al tick
+                correctionsPhysic.savePositionBuffer(tick, transform.position);
 
-                validatePhysic.savePositionBuffer(tick, transform.position);
+                //Incrementar el tick
                 tick++;
             }
         }
-
-        //🎲 Simulacion de latencia
-        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
-        // 🎲 Simulacion perdida de datagramas
-        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
     }
 
 
-    //---------------------------------------------------------------
+    //------------------------------------------------------------->
 
+    /// <summary>
+    /// Registrar o agregar un nuevo tick con informacion de input
+    /// controlando un tamanno maximo para la cola
+    /// </summary>
+    /// <param name="inputTick"></param>
     public void AddInputTick(InputTick inputTick) {
         //Controlar tamanno maximo de la cola
         if (tickQueue.Count > limitTickQueueSize)
@@ -148,28 +145,41 @@ public class MovementController : MonoBehaviour{
         tickQueue.Enqueue(inputTick);
     }
 
-    //---------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    /**
-     * 🎲 Simulacion de latencia
-     * Corrutina que espera X segundos antes de enviar los datos al servidor 
-     */
+    /// <summary>
+    /// 🎲 Simulación del envío de información en una conexión UDP entre nodos remotos.
+    /// Posible perdida de datagramas
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="clientAddress"></param>
+    public void SendToClientSimulate(byte[] data) {
+        //🎲 Simulacion perdida datagramas: Probabilidad de que el datagrama se pierda
+        if (StaticMethods.Percent((short)sliderLostDatagram.value)) {
+            Debug.LogWarning("Paquete perdido");
+        } else {
+            //🎲 Simulacion de latencia
+            StartCoroutine(sendToServerSimulateLatency(data));
+        }
+    }
+
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// 🎲 Simulación del envío de información en una conexión UDP entre nodos remotos.
+    /// Posible latencia en el envío
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     IEnumerator sendToServerSimulateLatency(byte[] data) {
         yield return new WaitForSeconds(sliderLatency.value/1000);
         connectServer.sendDataToServer(data);
     }
 
 
-    public void correctionPosition(Vector2 serverPosition) {
-        float grap = (rb.position - serverPosition).sqrMagnitude;
-        if (grap > 6) {
-            rb.position = serverPosition;
-        }
-        Debug.Log("current " + rb.position.x + " server " + serverPosition.x + " Magnitud:" + grap);
-
-    }
-
-    //---------------------------------------------------------------
+    //-------------------------------------------------------------//
+    //                        SETs + GETs                          //
+    //-------------------------------------------------------------//
 
     public void setMovement(EnumDisplacement displacement) {
         this.displacement = displacement;
@@ -178,13 +188,4 @@ public class MovementController : MonoBehaviour{
     public void setJump(bool jump) {
         this.jump = jump;
     }
-
-    public int getTick() {
-        return tick;
-    }
-
-    public Vector2 getPosition() {
-        return rb.position;
-    }
-
 }

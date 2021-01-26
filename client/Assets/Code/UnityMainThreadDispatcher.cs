@@ -67,12 +67,10 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 		return tcs.Task;
 	}
 
-
 	IEnumerator ActionWrapper(Action a) {
 		a();
 		yield return null;
 	}
-
 
 	private static UnityMainThreadDispatcher _instance = null;
 
@@ -87,7 +85,6 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 		return _instance;
 	}
 
-
 	void Awake() {
 		if (_instance == null) {
 			_instance = this;
@@ -98,6 +95,5 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 	void OnDestroy() {
 		_instance = null;
 	}
-
 
 }

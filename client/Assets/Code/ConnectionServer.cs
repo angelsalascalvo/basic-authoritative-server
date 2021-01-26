@@ -1,62 +1,64 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
-/**
- * FUNCIONALIDAD DEL SCRIPT
- */
-public class ConnectServer : MonoBehaviour{
+/// <summary>
+/// Funcionalidad principal de la comunicación por socket con el servidor.
+/// Envio y recepcion de datagramas.
+/// </summary>
+public class ConnectionServer : MonoBehaviour{
 
     //// VAR PUB
-    public short quantityDatagramLost = 10;//%
-
-    //// REF PUB
     public string serverIp = "127.0.0.1";
     public int serverPort = 1999;
-    public ValidatePhysic validatePhysic;
+
+    //// REF PUB
+    public CorrectionsPhysic correctionsPhysic;
+    public Button ConnecttionToServerButton;
 
     //// VAR PRIV
     private Socket socket;
     private Thread thReceiveServer;
     private IPEndPoint serverAddress;
     private bool connect = false;
-    public int lastTickServer = 0;
     private int myID=-1;
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //                                      METODOS                                      //
-    ///////////////////////////////////////////////////////////////////////////////////////
+    //------------------------------------------------------------->
 
-    /**
-     * INICIALIZACION
-     */
+    /// <summary>
+    /// Inicializacion
+    /// </summary>
     void Start() {
-        Time.fixedDeltaTime = 0.02f;
-        /// Crear socket comunicacion con servidor
+
+        //1. Crear socket comunicacion con servidor
         serverAddress = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Connect(serverAddress);
 
-        /// Escuchar respuestas del sevidor en hilo 
+        //2. Iniciar hilo de escucha de mensaje del servidor
         thReceiveServer = new Thread(new ThreadStart(receiveFromServer));
         thReceiveServer.Start();
+    }
 
-        /// Solicitar acceso a partida
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Enviar solicitud acceso al servidor
+    /// </summary>
+    public void ConnectToServer() {
         byte[] data = new byte[508];
         data[0] = 1;//ActionCode 1. 
         sendDataToServer(data);
     }
 
-    //---------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    /**
-     * HILO RECIBIR MENSAJE DEL SERVIDOR
-     */
+    /// <summary>
+    /// Recibir datagramas del servidor
+    /// </summary>
     private void receiveFromServer() {
 
         byte[] dataRec;
@@ -66,9 +68,9 @@ public class ConnectServer : MonoBehaviour{
             dataRec = new byte[508];
             socket.ReceiveFrom(dataRec, ref server);
             BinaryReader br = new BinaryReader(new MemoryStream(dataRec));
-
             //StaticMethods.debugDatagram(dataRec);
 
+            //Leer ActionCode.
             switch (br.ReadByte()) {
                 //Respuesta servidor a entrar en partida
                 case 2:
@@ -76,27 +78,33 @@ public class ConnectServer : MonoBehaviour{
                         Debug.Log("Admitido en partida");
                         connect = true;
                         myID = br.ReadInt32();
+                        //Desactivar el boton de conectar con servidor
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                            ConnecttionToServerButton.gameObject.SetActive(false)
+                        );
+                       
+                    } else {
+                        Debug.LogWarning("No admitido en partida");
                     }
                     break;
+
                 //Mensaje de posiciones
                 case 3:
-
                     byte length = br.ReadByte();
+                    //Recorrer la informacion de todos los clientes
                     for (int i = 0; i < length; i++) {
 
                         int id = br.ReadInt32();
                         int tick = br.ReadInt32();
                         float posX = br.ReadSingle();
                         float posY = br.ReadSingle();
-                        float velX = br.ReadSingle();
-                        float velY = br.ReadSingle();
-
+                      
+                        //Es informacion de un jugador rival
                         if (id != myID) {
-                            //Jugador Rival
-                            validatePhysic.ProcessStatusRival(id, new Vector2(posX, posY), new Vector2(velX, velY));
-
+                            correctionsPhysic.ProcessStatusRival(id, new Vector2(posX, posY));
+                        //Es información de mi jugador
                         } else {
-                            validatePhysic.CorrectPlayer(tick, new Vector2(posX, posY));
+                            correctionsPhysic.CorrectPlayer(tick, new Vector2(posX, posY));
                         }
                     }                                  
                     break;
@@ -104,41 +112,33 @@ public class ConnectServer : MonoBehaviour{
         }
     }
 
-    //---------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    /**
-     * METODO ENVIAR MENSAJE AL SERVIDOR
-     */
+    /// <summary>
+    /// Enviar un datagrama al servidor
+    /// </summary>
+    /// <param name="data"></param>
     public void sendDataToServer(byte[] data) {
         //Enviar datos haciendo uso del socket
         socket.SendTo(data, serverAddress);
     }
 
-    //---------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    /**
-     * EJECUCION AL FINALIZAR LA EJECUCION
-     */
+    /// <summary>
+    /// Al finalizar la ejecucion
+    /// </summary>
     private void OnDestroy() {
-        //Matar hilos
+        //Finalizar hilo
         thReceiveServer.Abort();
-        Debug.Log("Final");
     }
 
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-    //                                     GET + SET                                     //
-    ///////////////////////////////////////////////////////////////////////////////////////
+    //-------------------------------------------------------------//
+    //                        SETs + GETs                          //
+    //-------------------------------------------------------------//
 
-
-    /**
-     * ¿ESTA CONECTADO AL SERVIDOR?
-     */
     public bool isConnected() {
         return connect;
-    }
-
-    public int getLastTickServer() {
-        return lastTickServer;
     }
 }

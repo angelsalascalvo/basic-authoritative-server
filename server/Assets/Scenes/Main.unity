@@ -145,7 +145,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 122199879}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.08, y: 1.05, z: 0}
+  m_LocalPosition: {x: 7.33, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1056730443}
@@ -249,7 +249,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 378174037}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.87, y: 0, z: 0}
+  m_LocalPosition: {x: -2.67, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1056730443}
@@ -266,7 +266,6 @@ GameObject:
   - component: {fileID: 519420032}
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
-  - component: {fileID: 519420030}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -282,18 +281,6 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
---- !u!114 &519420030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519420028}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b388970ca503624f87f77506189a031, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -562,7 +549,7 @@ GameObject:
   - component: {fileID: 863579844}
   - component: {fileID: 863579846}
   m_Layer: 0
-  m_Name: ServerMain
+  m_Name: MainController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -580,14 +567,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba7a344e829a4404987d430314b1c484, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ipServer: 192.168.0.163
   portServer: 1999
-  clientsPhysic: {fileID: 863579846}
   maxClients: 3
   instantiationPoints:
   - {fileID: 1210549150}
   - {fileID: 378174038}
   - {fileID: 122199880}
+  clientsPhysic: {fileID: 863579846}
   sliderLostDatagram: {fileID: 549057572}
   textLostDatagram: {fileID: 994006743}
   sliderLatency: {fileID: 1142968843}
@@ -955,7 +941,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210549149}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.88, y: 0, z: 0}
+  m_LocalPosition: {x: -7.12, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1056730443}
@@ -1221,7 +1207,7 @@ PrefabInstance:
     - target: {fileID: 700449655040949326, guid: 272893b4ba2cc2b43a2b724439ff8e94,
         type: 3}
       propertyPath: m_Name
-      value: Ground (1)
+      value: Level
       objectReference: {fileID: 0}
     - target: {fileID: 700449655040949327, guid: 272893b4ba2cc2b43a2b724439ff8e94,
         type: 3}

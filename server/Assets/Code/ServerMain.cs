@@ -4,22 +4,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
-/**
-* FUNCIONALIDAD DEL SCRIPT
-*/
+
+/// <summary>
+/// Funcionalidad principal de la comunicación por socket con los clientes.
+/// Envio y recepcion de datagramas.
+/// </summary>
 public class ServerMain : MonoBehaviour{
 
+    //// VAR PUB
     public int portServer;
-    public ClientsPhysic clientsPhysic;
-
+    //Informacion de los clientes
     [Header("Clients Options")]
     public short maxClients = 2;
-    public List<Transform> instantiationPoints = new List<Transform>();
 
+    //// REF PUB
+    public List<Transform> instantiationPoints = new List<Transform>();
+    public ClientsPhysic clientsPhysic;
     // 🎲 Simulacion perdida de datagramas
     [Header("Lost Datagram Simulate")]
     public Slider sliderLostDatagram;
@@ -28,35 +31,35 @@ public class ServerMain : MonoBehaviour{
     [Header("Latency Simulate")]
     public Slider sliderLatency;
     public Text textLatency;
-
-    /// VAR PRI
+   
+    //// VAR PRI
     private List<Client> clientList = new List<Client>();
-
     private Socket serverSocket;
     private IPEndPoint serverAddress, clientAddress;
     private Thread thListenClients;
-    private int lostDatagrams=0;
 
-    /**
-    * INICIALIZACION
-    */
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Inicializacion
+    /// </summary>
     void Start() {
-        //1. Crear Socket
+        //1. Crear Socket UDP
         serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         serverAddress = new IPEndPoint(IPAddress.Any, portServer); //Abrir socket con la ip local
         serverSocket.Bind(serverAddress);
 
         //2. Iniciar hilo de escucha
-        thListenClients = new Thread(new ThreadStart(listen));
+        thListenClients = new Thread(new ThreadStart(Listen));
         thListenClients.Start();
     }
 
     //---------------------------------------------------------------
 
-    /**
-     * METODO PARA ESCUCHAR CONEXIONES DE CLIENTES
-     */
-    private void listen() {
+    /// <summary>
+    /// Recepcion y procesado de datagramas de los clientes
+    /// </summary>
+    private void Listen() {
         Debug.Log("Servidor escuchando...");
         EndPoint clientAddAux = serverAddress; //Inicializar el objeto para evitar errores
         byte[] dataRec, dataSend;
@@ -64,47 +67,57 @@ public class ServerMain : MonoBehaviour{
         while (true) {
             dataRec = new byte[508];
             try {
+                //Recibir datos
                 serverSocket.ReceiveFrom(dataRec, ref clientAddAux);
             } catch (SocketException e) {
                 Debug.LogError(e.ErrorCode);
-
             }
-            clientAddress = clientAddAux as IPEndPoint;
-            BinaryReader br = new BinaryReader(new MemoryStream(dataRec));
 
+            //Almacenar direccion recepcion
+            clientAddress = clientAddAux as IPEndPoint;
+
+            //Leer y procesar datos
+            BinaryReader br = new BinaryReader(new MemoryStream(dataRec));
             //Leer ActionCode.
             switch (br.ReadByte()) {
                 //Solicitud entrada a partida
                 case 1:
-
+                    //Crear datagrama de respuesta
                     dataSend = new byte[508];
                     BinaryWriter bw = new BinaryWriter(new MemoryStream(dataSend));
                     bw.Write((byte)2); //ActionCode 2. 
+
+                    //El nivel admite más usuario
                     if (clientList.Count < maxClients) {
-                        Debug.Log("Admitido " + clientAddress.Address.ToString() + ":" + clientAddress.Port);
-                        bw.Write(true); //Marca de admitido
-                        //Agregar cliente al listado
+                     
+                        //Nuevo cliente
                         Client newClient = new Client(clientList.Count + 1, clientAddress);
                         clientList.Add(newClient);
-                        bw.Write(newClient.GetId()); //Id del cliente
+
                         //Instanciar
                         UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                            clientsPhysic.instantiate(newClient, instantiationPoints[clientList.Count - 1].position)
+                            clientsPhysic.Instantiate(newClient, instantiationPoints[clientList.Count - 1].position)
                         );
 
+                        //Respuesta al usuario
+                        bw.Write(true); //Marca de admitido
+                        bw.Write(newClient.GetId());
 
+                        Debug.Log("Admitido " + clientAddress.Address.ToString() + ":" + clientAddress.Port);
+
+                    //El nivel esta completo no admite mas usuarios
                     } else {
                         bw.Write(false); //Marca de no admitido
                     }
 
+                    //Enviar respuesta
                     serverSocket.SendTo(dataSend, clientAddress);
                     break;
 
-                //Movimiento del personaje
+                //Input del cliente
                 case 2:
 
                     Client client = searchClient(clientAddress);
-
                     short lengthTicks = br.ReadInt16(); //Cantidad de ticks enviados por el datagrama
 
                     //Recorrer cada tick recibido
@@ -112,21 +125,17 @@ public class ServerMain : MonoBehaviour{
                            
                         //Leer datos del datagrama
                         int tick = br.ReadInt32();
-                        //Parsear byte to enum desplazamiento
                         byte displacement = br.ReadByte();
-                        //Leer bool salto
                         bool jump = br.ReadBoolean();
 
-                        //Comprobar si el tick en cuestion se ha ejecutado en el servidor
-                        //El envío redundante puede causarse debido a que el cliente cuando envia su mensaje de tick 
-                        //aun no haya recibido el acuse de recibo de un tick ejecutado en el servidor, o incluso que 
-                        //este mensaje se haya perdido en la comunicacion
+                        //Descartar ticks ya ejecudos, se pueden recibir ticks duplicados debido al sistema 
+                        //de proteccion frente a la perdida de datagramas en la comunicacion (cliente envía siempre sus 5 ultimos ticks/inputs)
                         if (tick > client.GetLastTickQueue()) {
                             InputTick inputTick;
                             inputTick.tick = tick;
                             inputTick.displacement = (EnumDisplacement) Enum.ToObject(typeof(EnumDisplacement), displacement);
                             inputTick.jump = jump;
-                            client.AddInputTick(inputTick);
+                            client.AddInputTick(inputTick); //Agregar a la cola
                         }
                     }
 
@@ -134,50 +143,18 @@ public class ServerMain : MonoBehaviour{
             }
         }
     }
-    
 
-    //------------------------------------------------------------------------
+    //------------------------------------------------------------->
 
-    private void Update() {
-        // 🎲 Simulacion perdida de datagramas
-        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
-        //🎲 Simulacion de latencia
-        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
-
+    /// <summary>
+    /// Al finalizar la ejecucion
+    /// </summary>
+    private void OnDestroy() {
+        //Finalizar hilo
+        thListenClients.Abort();
     }
 
-    //---------------------------------------------------------------
-
-    /**
-    * 🎲 Simulacion de latencia + perdida de paquetes
-    * Corrutina que espera X segundos antes de enviar los datos al servidor 
-    */
-    public void SendToClientSimulate(byte[] data, IPEndPoint clientAddress) {
-        if (StaticMethods.percent((short)sliderLostDatagram.value)) {
-            Debug.LogWarning("Paquete perdido");
-        } else {
-            //🎲 Simulacion de latencia
-            StartCoroutine(CorrutineSimulateLatency(data, clientAddress));
-        }
-    }
-    IEnumerator CorrutineSimulateLatency(byte[]data, IPEndPoint clientAddress) {    
-        //🎲 Simulacion de latencia
-        yield return new WaitForSeconds(sliderLatency.value / 1000);
-        SendToClient(data, clientAddress);
-    }
-
-
-
-    /**
-     * METODO ENVIAR MENSAJE AL CLIENTE
-       */
-    public void SendToClient(byte[] data, IPEndPoint clientAddress) {
-        serverSocket.SendTo(data, clientAddress);
-    }
-
-
-
-
+    //------------------------------------------------------------->
 
     /// <summary>
     /// Obtener un cliente del listado por su direccion IP
@@ -191,10 +168,66 @@ public class ServerMain : MonoBehaviour{
         return null;
     }
 
+    //------------------------------------------------------------------------
+
+    /// <summary>
+    /// Actualizacion cada fotograma
+    /// </summary>
+    private void Update() {
+        //🎲 Simulacion. Actualizar datos de la interfaz gráfica
+        textLostDatagram.text = "Perdida envío datagramas: " + (int)sliderLostDatagram.value + "%";
+        textLatency.text = "Latencia de envío: " + (int)sliderLatency.value + "ms";
+    }
+
+    //---------------------------------------------------------------
+
+    /// <summary>
+    /// 🎲 Simulación del envío de información en una conexión UDP entre nodos remotos.
+    /// Posible perdida de datagramas
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="clientAddress"></param>
+    public void SendToClientSimulate(byte[] data, IPEndPoint clientAddress) {
+        if (StaticMethods.Percent((short)sliderLostDatagram.value)) {
+            Debug.LogWarning("Paquete perdido");
+        } else {
+            //🎲 Simulacion de latencia
+            StartCoroutine(CorrutineSimulateLatency(data, clientAddress));
+        }
+    }
+
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// 🎲 Simulación del envío de información en una conexión UDP entre nodos remotos.
+    /// Posible latencia en el envío
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="clientAddress"></param>
+    /// <returns></returns>
+    IEnumerator CorrutineSimulateLatency(byte[]data, IPEndPoint clientAddress) {    
+        //🎲 Simulacion de latencia
+        yield return new WaitForSeconds(sliderLatency.value / 1000);
+        SendToClient(data, clientAddress);
+    }
+
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Enviar un datagrama a un cliente
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="clientAddress"></param>
+    public void SendToClient(byte[] data, IPEndPoint clientAddress) {
+        serverSocket.SendTo(data, clientAddress);
+    }
+
+
+    //-------------------------------------------------------------//
+    //                        SETs + GETs                          //
+    //-------------------------------------------------------------//
+
     public List<Client> GetClientList() {
         return clientList;
     }
-   
-
 }
-

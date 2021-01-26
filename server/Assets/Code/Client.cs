@@ -2,9 +2,12 @@
 using System.Net;
 using UnityEngine;
 
+/// <summary>
+/// Representacion del cliente o jugador conectado
+/// </summary>
 public class Client {
     //VAR STA
-    private static int limitTickQueueSize = 5;
+    private static readonly int limitTickQueueSize = 5;
 
     //PROP
     private int id;
@@ -13,23 +16,46 @@ public class Client {
     private InputTick lastTickExecuted;
     private int lastTickQueue;
     private Queue<InputTick> tickQueue;
-   
 
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Constructor parametrizado
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="address"></param>
     public Client(int id, IPEndPoint address) {
         this.id = id;
         this.address = address;
+        //Estado por defecto
         tickQueue = new Queue<InputTick>();
         lastTickQueue = -1;
 
-        //Por defecto
         lastTickExecuted.tick = -1;
         lastTickExecuted.jump = false;
         lastTickExecuted.displacement = EnumDisplacement.None;
     }
 
-    //---------------------------------------------------
+    //------------------------------------------------------------->
 
-    //// GET + SET ////
+
+    /// <summary>
+    /// Registrar o agregar un nuevo tick con informacion de input 
+    /// para el cliente controlando un tamanno maximo para la cola
+    /// </summary>
+    /// <param name="inputTick"></param>
+    public void AddInputTick(InputTick inputTick) {
+        if (tickQueue.Count > limitTickQueueSize)
+            tickQueue.Dequeue();
+
+        tickQueue.Enqueue(inputTick);
+        lastTickQueue = inputTick.tick;
+    }
+
+
+    //-------------------------------------------------------------//
+    //                        SETs + GETs                          //
+    //-------------------------------------------------------------//
 
     public int GetId() {
         return id;
@@ -61,21 +87,4 @@ public class Client {
     public void SetLastTickExecuted(InputTick lastTickExecuted) {
         this.lastTickExecuted = lastTickExecuted;
     }
-    //--------------------------------------------------
-
-    public string Print() {
-        return "ID: " + id + " | Address:" + address + " | GameObject: " + gameObject;
-    }
-
-    public void AddInputTick(InputTick inputTick) {
-        //Controlar tamanno maximo de la cola
-        if (tickQueue.Count > limitTickQueueSize)
-            tickQueue.Dequeue();
-
-        tickQueue.Enqueue(inputTick);
-        lastTickQueue = inputTick.tick;
-    }
-
-   
-
 }

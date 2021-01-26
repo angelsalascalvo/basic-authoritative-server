@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems; 
 
-/**
- * SCRIPT GENERICO EFECTUAR UN MOVIMIENTO AL PULSAR UN ELEMENTO O BOTON TACTIL
- */
+/// <summary>
+/// Script generico para configurar botones de movimiento tactiles
+/// </summary>
 public class ButtonController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
+
     //// REF PUB
     public MovementController movementScript;
-    public bool jump = false;
+    
+    //// VAR PUB
+    public bool jump = false; //¿Es el boton de salto?
     public EnumDisplacement displacement;
 
-    /**
-     * Al pulsar el elemento
-     */
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Al pulsar el objeto llamar al metodo correspondiente segun configuracion
+    /// </summary>
+    /// <param name="eventData"></param>
     public void OnPointerDown(PointerEventData eventData) {
         if (jump) {
             movementScript.setJump(true);
@@ -23,9 +29,12 @@ public class ButtonController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         }
     }
 
-    /**
-     * Al soltar el elemento
-     */
+    //------------------------------------------------------------->
+
+    /// <summary>
+    /// Al soltar el objeto llamar al metodo correspondiente segun configuracion
+    /// </summary>
+    /// <param name="eventData"></param>
     public void OnPointerUp(PointerEventData eventData) {
         if (jump) {
             movementScript.setJump(false);
